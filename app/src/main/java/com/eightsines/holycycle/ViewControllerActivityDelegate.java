@@ -14,7 +14,9 @@ import android.view.View;
  * use this class. See the {@link ActivityViewController} for example of use.</p>
  */
 public class ViewControllerActivityDelegate {
-    private static final int STATE_DESTROYED = -1;
+    private static final int STATE_PENDING_FINISH = -3;
+    private static final int STATE_DESTROYED = -2;
+    private static final int STATE_PERFORMING_PAUSE = -1;
     private static final int STATE_INITIALIZED = 0;
     private static final int STATE_CREATED = 1;
     private static final int STATE_STARTED = 2;
@@ -76,11 +78,7 @@ public class ViewControllerActivityDelegate {
 
         contentLayoutResId = controller.onControllerGetContentLayoutId();
 
-        if (state <= STATE_DESTROYED) {
-            return;
-        }
-
-        if (contentLayoutResId != 0) {
+        if (state > STATE_DESTROYED && contentLayoutResId != 0) {
             owner.setContentView(contentLayoutResId);
             controller.onControllerContentViewCreated();
         }
@@ -139,19 +137,20 @@ public class ViewControllerActivityDelegate {
                     "onPause() was called with an invalid state, perhaps you forgot to call onResume()?");
         }
 
+        state = STATE_PERFORMING_PAUSE;
+
         if (hasWindowFocus) {
             controller.onControllerBlur();
         }
 
-        if (state <= STATE_DESTROYED) {
-            return;
-        }
-
-        state = STATE_STARTED;
         controller.onControllerPause();
+        controller.onControllerPersistUserData();
 
-        if (state > STATE_DESTROYED) {
-            controller.onControllerPersistUserData();
+        if (state == STATE_PENDING_FINISH) {
+            state = STATE_STARTED;
+            finish();
+        } else {
+            state = STATE_STARTED;
         }
     }
 
@@ -235,6 +234,11 @@ public class ViewControllerActivityDelegate {
      */
     public void finish() {
         if (state <= STATE_DESTROYED) {
+            return;
+        }
+
+        if (state == STATE_PERFORMING_PAUSE) {
+            state = STATE_PENDING_FINISH;
             return;
         }
 
