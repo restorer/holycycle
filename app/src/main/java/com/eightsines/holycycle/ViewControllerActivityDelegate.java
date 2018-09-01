@@ -237,7 +237,7 @@ public class ViewControllerActivityDelegate {
             return;
         }
 
-        if (state == STATE_PERFORMING_PAUSE) {
+        if (state < STATE_INITIALIZED) {
             state = STATE_PENDING_FINISH;
             return;
         }

@@ -188,7 +188,8 @@ public class ViewControllerFragmentDelegate {
             //
             // There are problems with implementing this for fragments and API < 18. Solutions:
             // a) pass onWindowFocusChanged() from Activity;
-            // b) wrap fragment layout into custom View, which will handle onWindowFocusChanged().
+            // b) wrap fragment layout into custom View, which will handle onWindowFocusChanged();
+            // c) set new Window.Callback, which wraps existing (but beware that Activity can set new callbacks in some cases).
 
             hasWindowFocus = true;
         }
@@ -276,16 +277,11 @@ public class ViewControllerFragmentDelegate {
             controller.onControllerBlur();
         }
 
-        if (state <= STATE_DESTROYED) {
-            return;
-        }
-
-        state = STATE_STARTED;
         controller.onControllerPause();
+        controller.onControllerPersistUserData();
 
-        if (state > STATE_DESTROYED) {
-            controller.onControllerPersistUserData();
-        }
+        // Logic with STATE_PENDING_FINISH, if finish() will be implemented for fragments
+        state = STATE_STARTED;
     }
 
     /**
@@ -315,7 +311,9 @@ public class ViewControllerFragmentDelegate {
             return;
         }
 
-        if (state != STATE_STOPPED) {
+        // According to https://github.com/xxv/android-lifecycle, state can't be STATE_VIEW_CREATED,
+        // but we still handle it for the great justice.
+        if (state != STATE_STOPPED && state != STATE_VIEW_CREATED) {
             throw new IllegalStateException(
                     "onDestroyView() was called with an invalid state, perhaps you forgot to call onStop()?");
         }

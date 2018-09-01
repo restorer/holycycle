@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.View;
+import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -16,6 +18,7 @@ import org.mockito.stubbing.Answer;
 public class ViewControllerActivityDelegateTest {
     private static final String NAME_EXTRAS = "extras";
     private static final String NAME_SAVED_INSTANCE_STATE = "savedInstanceState";
+    private static final String NAME_OUT_STATE = "outState";
 
     private Activity activity;
     private ViewController controller;
@@ -71,8 +74,7 @@ public class ViewControllerActivityDelegateTest {
         Mockito.verify(controller).onControllerRestoreInstanceState(savedInstanceState);
         Mockito.verify(controller).onControllerGetContentLayoutId();
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test
@@ -97,8 +99,7 @@ public class ViewControllerActivityDelegateTest {
         Mockito.verify(controller).onControllerCreate(extras);
         Mockito.verify(controller).onControllerRestoreInstanceState(savedInstanceState);
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test
@@ -122,8 +123,7 @@ public class ViewControllerActivityDelegateTest {
         Mockito.verify(activity).getIntent();
         Mockito.verify(controller).onControllerCreate(extras);
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test
@@ -133,8 +133,7 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.finish();
         controllerDelegate.onCreate(savedInstanceState);
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -153,8 +152,7 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.finish();
         controllerDelegate.onStart();
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -188,13 +186,10 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.onResume();
 
         Mockito.verify(controller).onControllerResume();
-        Mockito.verify(controller).onControllerBlur();
-        Mockito.verify(controller).onControllerPause();
-        Mockito.verify(controller).onControllerPersistUserData();
-        Mockito.verify(controller).onControllerStop();
+        verifyPause(true);
+        verifyStop();
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test
@@ -202,8 +197,7 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.finish();
         controllerDelegate.onResume();
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -213,12 +207,12 @@ public class ViewControllerActivityDelegateTest {
 
     @Test
     public void testOnPauseNoFocus() {
-        performPause(false);
+        performPauseAfterResume(false);
     }
 
     @Test
     public void testOnPauseHasFocus() {
-        performPause(true);
+        performPauseAfterResume(true);
     }
 
     @Test
@@ -235,13 +229,10 @@ public class ViewControllerActivityDelegateTest {
 
         controllerDelegate.onPause();
 
-        Mockito.verify(controller).onControllerBlur();
-        Mockito.verify(controller).onControllerPause();
-        Mockito.verify(controller).onControllerPersistUserData();
-        Mockito.verify(controller).onControllerStop();
+        verifyPause(true);
+        verifyStop();
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test
@@ -258,13 +249,10 @@ public class ViewControllerActivityDelegateTest {
 
         controllerDelegate.onPause();
 
-        Mockito.verify(controller).onControllerBlur();
-        Mockito.verify(controller).onControllerPause();
-        Mockito.verify(controller).onControllerPersistUserData();
-        Mockito.verify(controller).onControllerStop();
+        verifyPause(true);
+        verifyStop();
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test
@@ -272,8 +260,7 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.finish();
         controllerDelegate.onPause();
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -284,13 +271,13 @@ public class ViewControllerActivityDelegateTest {
     @Test
     public void testOnStop() {
         performStart();
+        performStop();
+    }
 
-        controllerDelegate.onStop();
-
-        Mockito.verify(controller).onControllerStop();
-
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+    @Test
+    public void testOnStopAfterPause() {
+        performPauseAfterResume(false);
+        performStop();
     }
 
     @Test
@@ -298,8 +285,7 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.finish();
         controllerDelegate.onStop();
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -310,12 +296,14 @@ public class ViewControllerActivityDelegateTest {
     @Test
     public void testOnDestroy() {
         performCreate();
+        performDestroy();
+    }
 
-        controllerDelegate.onDestroy();
-        controllerDelegate.onCreate(null);
-
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+    @Test
+    public void testOnDestroyAfterStop() {
+        performStart();
+        performStop();
+        performDestroy();
     }
 
     @Test
@@ -323,8 +311,7 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.finish();
         controllerDelegate.onDestroy();
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -332,40 +319,211 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.onDestroy();
     }
 
-    // testOnSaveInstanceStateResumed()
-    // testOnSaveInstanceStateStarted()
-    // testOnSaveInstanceStateCreated()
-    // testOnSaveInstanceStateInitialized()
-    // testOnSaveInstanceStateDestroyed()
+    @Test
+    public void testOnSaveInstanceStateResumed() {
+        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        performResume(false);
 
-    // testOnWindowFocusChangedNotResumedAndHasFocus()
-    // testOnWindowFocusChangedNotResumedAndHasNoFocus()
-    // testOnWindowFocusChangedResumedAndHasFocus()
-    // testOnWindowFocusChangedResumedAndHasNoFocus()
+        controllerDelegate.onSaveInstanceState(outState);
 
-    // testFinishResumed()
-    // testFinishStarted()
-    // testFinishCreated()
-    // testFinishInitialized()
-    // testFinishDestroyed()
+        verifyPause(false);
+        verifyStop();
+        Mockito.verify(controller).onControllerSaveInstanceState(outState);
 
-    // testGetViewHasContentLayout()
-    // testGetViewHasNoContentLayout()
+        ensureNoMoreInteractions();
+    }
 
-    private void performPause(boolean hasFocus) {
+    @Test
+    public void testOnSaveInstanceStateStarted() {
+        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        performStart();
+
+        controllerDelegate.onSaveInstanceState(outState);
+
+        Mockito.verify(controller).onControllerStop();
+        Mockito.verify(controller).onControllerSaveInstanceState(outState);
+
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnSaveInstanceStateCreated() {
+        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        performCreate();
+
+        controllerDelegate.onSaveInstanceState(outState);
+
+        Mockito.verify(controller).onControllerSaveInstanceState(outState);
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnSaveInstanceStateInitialized() {
+        Bundle outState = createMockBundle(NAME_OUT_STATE);
+
+        controllerDelegate.onSaveInstanceState(outState);
+
+        Mockito.verify(controller).onControllerSaveInstanceState(outState);
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnSaveInstanceStateDestroyed() {
+        Bundle outState = createMockBundle(NAME_OUT_STATE);
+
+        controllerDelegate.finish();
+        controllerDelegate.onSaveInstanceState(outState);
+
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnWindowFocusChangedNotResumedAndHasFocus() {
+        controllerDelegate.onWindowFocusChanged(true);
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnWindowFocusChangedNotResumedAndHasNoFocus() {
+        controllerDelegate.onWindowFocusChanged(false);
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnWindowFocusChangedResumedWithNoFocusAndHasFocus() {
+        performResume(false);
+
+        controllerDelegate.onWindowFocusChanged(true);
+
+        Mockito.verify(controller).onControllerFocus();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnWindowFocusChangedResumedWithNoFocusAndHasNoFocus() {
+        performResume(false);
+        controllerDelegate.onWindowFocusChanged(false);
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnWindowFocusChangedResumedWithFocusAndHasFocus() {
+        performResume(true);
+        controllerDelegate.onWindowFocusChanged(true);
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnWindowFocusChangedResumedWithFocusAndHasNoFocus() {
+        performResume(true);
+
+        controllerDelegate.onWindowFocusChanged(false);
+
+        Mockito.verify(controller).onControllerBlur();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testFinishResumed() {
+        performResume(false);
+
+        controllerDelegate.finish();
+
+        verifyPause(false);
+        verifyStop();
+
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testFinishStarted() {
+        performStart();
+
+        controllerDelegate.finish();
+
+        verifyStop();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testFinishCreated() {
+        performCreate();
+        controllerDelegate.finish();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testFinishInitialized() {
+        controllerDelegate.finish();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testFinishDestroyed() {
+        controllerDelegate.finish();
+        controllerDelegate.finish();
+
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testGetViewHasContentLayout() {
+        View view = Mockito.mock(View.class);
+        Mockito.when(activity.findViewById(android.R.id.content)).thenReturn(view);
+
+        performCreate();
+        View resultView = controllerDelegate.getView();
+
+        Mockito.verify(activity).findViewById(android.R.id.content);
+        Assert.assertSame(view, resultView);
+
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testGetViewHasNoContentLayout() {
+        View view = Mockito.mock(View.class);
+        Mockito.when(activity.findViewById(android.R.id.content)).thenReturn(view);
+
+        performCreate(true, true, false);
+        View resultView = controllerDelegate.getView();
+
+        Assert.assertNull(resultView);
+        ensureNoMoreInteractions();
+    }
+
+    private void performDestroy() {
+        controllerDelegate.onDestroy();
+        controllerDelegate.onCreate(null);
+        ensureNoMoreInteractions();
+    }
+
+    private void performStop() {
+        controllerDelegate.onStop();
+        Mockito.verify(controller).onControllerStop();
+        ensureNoMoreInteractions();
+    }
+
+    private void performPauseAfterResume(boolean hasFocus) {
         performResume(hasFocus);
 
         controllerDelegate.onPause();
 
+        verifyPause(hasFocus);
+        ensureNoMoreInteractions();
+    }
+
+    private void verifyStop() {
+        Mockito.verify(controller).onControllerStop();
+    }
+
+    private void verifyPause(boolean hasFocus) {
         if (hasFocus) {
             Mockito.verify(controller).onControllerBlur();
         }
 
         Mockito.verify(controller).onControllerPause();
         Mockito.verify(controller).onControllerPersistUserData();
-
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
     }
 
     private void performResume(boolean hasFocus) {
@@ -380,8 +538,7 @@ public class ViewControllerActivityDelegateTest {
             Mockito.verify(controller).onControllerFocus();
         }
 
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     private void performStart() {
@@ -390,9 +547,7 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.onStart();
 
         Mockito.verify(controller).onControllerStart();
-
-        Mockito.verifyNoMoreInteractions(activity);
-        Mockito.verifyNoMoreInteractions(controller);
+        ensureNoMoreInteractions();
     }
 
     private void performCreate() {
@@ -423,7 +578,10 @@ public class ViewControllerActivityDelegateTest {
             Mockito.verify(controller).onControllerContentViewCreated();
         }
 
-        Mockito.verifyNoMoreInteractions(activity);
+        ensureNoMoreInteractions();
+    }
+
+    private void ensureNoMoreInteractions() {
         Mockito.verifyNoMoreInteractions(controller);
     }
 

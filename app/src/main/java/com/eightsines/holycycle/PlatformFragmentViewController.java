@@ -12,7 +12,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class PlatformFragmentViewController extends Fragment implements ViewController {
-    private ViewControllerFragmentDelegate controllerDelegate = new ViewControllerFragmentDelegate(this);
+    private ViewControllerFragmentDelegate controllerDelegate;
+
+    public PlatformFragmentViewController() {
+        super();
+        controllerDelegate = new ViewControllerFragmentDelegate(this);
+    }
 
     @Override
     public void onAttach(Context context) {
