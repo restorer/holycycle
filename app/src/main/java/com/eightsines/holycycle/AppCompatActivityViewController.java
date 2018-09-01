@@ -18,6 +18,12 @@ public abstract class AppCompatActivityViewController extends AppCompatActivity 
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+        controllerDelegate.onRestart();
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         controllerDelegate.onStart();

@@ -14,7 +14,8 @@ import android.view.View;
  * use this class. See the {@link ActivityViewController} for example of use.</p>
  */
 public class ViewControllerActivityDelegate {
-    private static final int STATE_PENDING_FINISH = -3;
+    private static final int STATE_PENDING_FINISH = -4;
+    private static final int STATE_INSTANCE_STATE_SAVED = -3;
     private static final int STATE_DESTROYED = -2;
     private static final int STATE_PERFORMING_PAUSE = -1;
     private static final int STATE_INITIALIZED = 0;
@@ -27,6 +28,7 @@ public class ViewControllerActivityDelegate {
     private int state = STATE_INITIALIZED;
     private int contentLayoutResId;
     private boolean hasWindowFocus;
+    private boolean isInsideOnSaveInstanceState;
 
     /**
      * View controller delegate constructor. Mostly you want use it like
@@ -55,7 +57,9 @@ public class ViewControllerActivityDelegate {
         }
 
         if (state != STATE_INITIALIZED) {
-            throw new IllegalStateException("This should not happen, but onCreate() was called with an invalid state.");
+            throw new IllegalStateException("This should not happen, but onCreate() was called with an invalid state ("
+                    + state
+                    + ").");
         }
 
         state = STATE_CREATED;
@@ -84,19 +88,33 @@ public class ViewControllerActivityDelegate {
         }
     }
 
-    // onRestart() is not handled intentionally.
+    /**
+     * Call this method from {@link Activity#onRestart()} after {@code super.onRestart()}.
+     */
+    public void onRestart() {
+        if (state == STATE_INSTANCE_STATE_SAVED) {
+            state = STATE_CREATED;
+        }
+    }
 
     /**
      * Call this method from {@link Activity#onStart()} after {@code super.onStart()}.
      */
     public void onStart() {
+        if (state == STATE_INSTANCE_STATE_SAVED) {
+            throw new IllegalStateException(
+                    "This should not happen, but onStart() was called after onSaveInstanceState(), perhaps you forgot to call onRestart()?");
+        }
+
         if (state <= STATE_DESTROYED) {
             return;
         }
 
         if (state != STATE_CREATED) {
             throw new IllegalStateException(
-                    "onStart() was called with an invalid state, perhaps you forgot to call onCreate()?");
+                    "onStart() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onCreate()?");
         }
 
         state = STATE_STARTED;
@@ -107,13 +125,20 @@ public class ViewControllerActivityDelegate {
      * Call this method from {@link Activity#onResume()} after {@code super.onResume()}.
      */
     public void onResume() {
+        if (state == STATE_INSTANCE_STATE_SAVED) {
+            throw new IllegalStateException(
+                    "This should not happen, but onResume() was called after onSaveInstanceState().");
+        }
+
         if (state <= STATE_DESTROYED) {
             return;
         }
 
         if (state != STATE_STARTED) {
             throw new IllegalStateException(
-                    "onResume() was called with an invalid state, perhaps you forgot to call onStart()? Otherwise, there is very little chance that this may be due to problems with onSaveInstanceState() in older versions of Android.");
+                    "onResume() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onStart()?");
         }
 
         state = STATE_RESUMED;
@@ -134,7 +159,9 @@ public class ViewControllerActivityDelegate {
 
         if (state != STATE_RESUMED) {
             throw new IllegalStateException(
-                    "onPause() was called with an invalid state, perhaps you forgot to call onResume()?");
+                    "onPause() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onResume()?");
         }
 
         state = STATE_PERFORMING_PAUSE;
@@ -164,7 +191,7 @@ public class ViewControllerActivityDelegate {
 
         if (state != STATE_STARTED) {
             throw new IllegalStateException(
-                    "onStop() was called with an invalid state, perhaps you forgot to call onPause()?");
+                    "onStop() was called with an invalid state (" + state + "), perhaps you forgot to call onPause()?");
         }
 
         state = STATE_CREATED;
@@ -181,7 +208,9 @@ public class ViewControllerActivityDelegate {
 
         if (state != STATE_CREATED) {
             throw new IllegalStateException(
-                    "onDestroy() was called with an invalid state, perhaps you forgot to call onStop()?");
+                    "onDestroy() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onStop()?");
         }
 
         state = STATE_DESTROYED;
@@ -196,6 +225,8 @@ public class ViewControllerActivityDelegate {
             return;
         }
 
+        isInsideOnSaveInstanceState = true;
+
         if (state == STATE_RESUMED) {
             onPause();
         }
@@ -205,6 +236,9 @@ public class ViewControllerActivityDelegate {
         }
 
         controller.onControllerSaveInstanceState(outState);
+
+        state = STATE_INSTANCE_STATE_SAVED;
+        isInsideOnSaveInstanceState = false;
     }
 
     /**
@@ -233,7 +267,7 @@ public class ViewControllerActivityDelegate {
      * Call this method from {@link Activity#finish()} before {@code super.finish()}.
      */
     public void finish() {
-        if (state <= STATE_DESTROYED) {
+        if (state <= STATE_DESTROYED || isInsideOnSaveInstanceState) {
             return;
         }
 
