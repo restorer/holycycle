@@ -4,10 +4,13 @@ android {
     compileSdkVersion 27
 
     defaultConfig {
-        minSdkVersion 14
+        //noinspection MinSdkTooLow
+        minSdkVersion 11
+
         targetSdkVersion 27
         versionCode 1
         versionName '1.0'
+        testApplicationId 'com.eightsines.holycycle.test'
         testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
 

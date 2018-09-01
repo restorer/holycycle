@@ -13,8 +13,6 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-// http://d.android.com/tools/testing
-
 public class ViewControllerActivityDelegateTest {
     private static final String NAME_EXTRAS = "extras";
     private static final String NAME_SAVED_INSTANCE_STATE = "savedInstanceState";
