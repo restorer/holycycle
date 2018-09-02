@@ -1,9 +1,12 @@
 package com.eightsines.holycycle.util;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import org.mockito.Mockito;
 
 public final class TestUtils {
@@ -24,5 +27,40 @@ public final class TestUtils {
         Intent intent = Mockito.mock(Intent.class);
         Mockito.when(intent.getExtras()).thenReturn(extras);
         return intent;
+    }
+
+    public static void runWithMockedSdkInt(int newValue, Runnable runnable) {
+        try {
+            mockStaticField(Build.VERSION.class.getField("SDK_INT"), newValue);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+
+        runnable.run();
+
+        try {
+            mockStaticField(Build.VERSION.class.getField("SDK_INT"), 0);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static void mockStaticField(Field field, Object newValue) {
+        field.setAccessible(true);
+
+        try {
+            //noinspection JavaReflectionMemberAccess
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+            field.set(null, newValue);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

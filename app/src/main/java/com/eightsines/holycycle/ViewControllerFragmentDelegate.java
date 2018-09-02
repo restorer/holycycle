@@ -23,7 +23,8 @@ import com.eightsines.holycycle.app.ViewControllerPlatformFragment;
  */
 @SuppressLint("NewApi")
 public class ViewControllerFragmentDelegate {
-    private static final int STATE_DESTROYED = -2;
+    private static final int STATE_DESTROYED = -3;
+    private static final int STATE_INSTANCE_STATE_SAVED = -2;
     private static final int STATE_STOPPED = -1;
     private static final int STATE_INITIALIZED = 0;
     private static final int STATE_ATTACHED = 1;
@@ -74,12 +75,14 @@ public class ViewControllerFragmentDelegate {
      * after {@code super.onAttach(context)}.
      */
     public void onAttach() {
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED) {
             return;
         }
 
-        if (state != STATE_INITIALIZED) {
-            throw new IllegalStateException("This should not happen, but onAttach() was called with an invalid state.");
+        if (state != STATE_INITIALIZED && state != STATE_INSTANCE_STATE_SAVED) {
+            throw new IllegalStateException("This should not happen, but onAttach() was called with an invalid state ("
+                    + state
+                    + ").");
         }
 
         state = STATE_ATTACHED;
@@ -93,19 +96,21 @@ public class ViewControllerFragmentDelegate {
      * @param arguments Pass {@code getArguments()} here.
      */
     public void onCreate(@Nullable Bundle savedInstanceState, @Nullable Bundle arguments) {
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED) {
             return;
         }
 
         if (state != STATE_ATTACHED) {
             throw new IllegalStateException(
-                    "onCreate() was called with an invalid state, perhaps you forgot to call onAttach()?");
+                    "onCreate() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onAttach()?");
         }
 
         state = STATE_CREATED;
         controller.onControllerCreate(arguments);
 
-        if (state > STATE_DESTROYED && savedInstanceState != null) {
+        if (savedInstanceState != null) {
             controller.onControllerRestoreInstanceState(savedInstanceState);
         }
     }
@@ -144,16 +149,23 @@ public class ViewControllerFragmentDelegate {
             @Nullable ViewGroup container,
             boolean isPlatformFragment) {
 
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED) {
             return null;
         }
 
-        // STATE_ATTACHED - If fragment is retained, this method can be called directly after onAttach()
-        // STATE_CREATED - Normal flow
-        // STATE_STOPPED - Just for case, actually this should never happen
-        if (state != STATE_ATTACHED && state != STATE_CREATED && state != STATE_STOPPED) {
+        // STATE_ATTACHED - If fragment is retained, this method can be called directly after onAttach();
+        // STATE_CREATED - Normal flow;
+        // STATE_STOPPED - Just for case, actually this should never happen;
+        // STATE_INSTANCE_STATE_SAVED - Also just for case.
+        if (state != STATE_ATTACHED
+                && state != STATE_CREATED
+                && state != STATE_STOPPED
+                && state != STATE_INSTANCE_STATE_SAVED) {
+
             throw new IllegalStateException(
-                    "onCreateView() was called with an invalid state, perhaps you forgot to call onCreate()?");
+                    "onCreateView() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onCreate()?");
         }
 
         state = STATE_VIEW_CREATED;
@@ -166,10 +178,6 @@ public class ViewControllerFragmentDelegate {
         hasWindowFocus = false;
 
         int contentLayoutResId = controller.onControllerGetContentLayoutId();
-
-        if (state <= STATE_DESTROYED) {
-            return null;
-        }
 
         if (contentLayoutResId == 0) {
             // Assume that non-graphical view controller always has focus.
@@ -205,13 +213,15 @@ public class ViewControllerFragmentDelegate {
      */
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR2)
     public void onViewCreated() {
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED) {
             return;
         }
 
         if (state != STATE_VIEW_CREATED) {
             throw new IllegalStateException(
-                    "onViewCreated() was called with an invalid state, perhaps you forgot to call onCreateView()?");
+                    "onViewCreated() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onCreateView()?");
         }
 
         controller.onControllerContentViewCreated();
@@ -224,15 +234,18 @@ public class ViewControllerFragmentDelegate {
      * after {@code super.onStart()}.
      */
     public void onStart() {
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED) {
             return;
         }
 
-        // STATE_VIEW_CREATED - Normal flow
-        // STATE_STOPPED - After onStop()
-        if (state != STATE_VIEW_CREATED && state != STATE_STOPPED) {
+        // STATE_VIEW_CREATED - Normal flow;
+        // STATE_STOPPED - After onStop();
+        // STATE_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
+        if (state != STATE_VIEW_CREATED && state != STATE_STOPPED && state != STATE_INSTANCE_STATE_SAVED) {
             throw new IllegalStateException(
-                    "onStart() was called with an invalid state, perhaps you forgot to call onCreateView()?");
+                    "onStart() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onCreateView()?");
         }
 
         state = STATE_STARTED;
@@ -244,19 +257,21 @@ public class ViewControllerFragmentDelegate {
      * after {@code super.onResume()}.
      */
     public void onResume() {
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED) {
             return;
         }
 
         if (state != STATE_STARTED) {
             throw new IllegalStateException(
-                    "onResume() was called with an invalid state, perhaps you forgot to call onStart()?");
+                    "onResume() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onStart()?");
         }
 
         state = STATE_RESUMED;
         controller.onControllerResume();
 
-        if (state > STATE_DESTROYED && hasWindowFocus) {
+        if (hasWindowFocus) {
             controller.onControllerFocus();
         }
     }
@@ -266,14 +281,18 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onPause()}.
      */
     public void onPause() {
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED || state == STATE_INSTANCE_STATE_SAVED) {
             return;
         }
 
         if (state != STATE_RESUMED) {
             throw new IllegalStateException(
-                    "onPause() was called with an invalid state, perhaps you forgot to call onResume()?");
+                    "onPause() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onResume()?");
         }
+
+        state = STATE_STARTED;
 
         if (hasWindowFocus) {
             controller.onControllerBlur();
@@ -281,9 +300,6 @@ public class ViewControllerFragmentDelegate {
 
         controller.onControllerPause();
         controller.onControllerPersistUserData();
-
-        // Logic with STATE_PENDING_FINISH, if finish() will be implemented for fragments
-        state = STATE_STARTED;
     }
 
     /**
@@ -291,13 +307,13 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onStop()}.
      */
     public void onStop() {
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED || state == STATE_INSTANCE_STATE_SAVED) {
             return;
         }
 
         if (state != STATE_STARTED) {
             throw new IllegalStateException(
-                    "onStop() was called with an invalid state, perhaps you forgot to call onPause()?");
+                    "onStop() was called with an invalid state (" + state + "), perhaps you forgot to call onPause()?");
         }
 
         state = STATE_STOPPED;
@@ -309,15 +325,17 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onDestroyView()}.
      */
     public void onDestroyView() {
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED) {
             return;
         }
 
         // According to https://github.com/xxv/android-lifecycle, state can't be STATE_VIEW_CREATED,
         // but we still handle it for the great justice.
-        if (state != STATE_STOPPED && state != STATE_VIEW_CREATED) {
+        if (state != STATE_STOPPED && state != STATE_VIEW_CREATED && state != STATE_INSTANCE_STATE_SAVED) {
             throw new IllegalStateException(
-                    "onDestroyView() was called with an invalid state, perhaps you forgot to call onStop()?");
+                    "onDestroyView() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onStop()?");
         }
 
         state = STATE_CREATED;
@@ -334,13 +352,16 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onDestroy()}.
      */
     public void onDestroy() {
-        if (state <= STATE_DESTROYED) {
+        if (state == STATE_DESTROYED) {
             return;
         }
 
-        if (state != STATE_CREATED) {
+        // STATE_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
+        if (state != STATE_CREATED && state != STATE_INSTANCE_STATE_SAVED) {
             throw new IllegalStateException(
-                    "onDestroy() was called with an invalid state, perhaps you forgot to call onDestroyView()? Otherwise, there is very little chance that this may be due to problems with onDestroyView() in some versions of Android.");
+                    "onDestroy() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onDestroyView()? Otherwise, there is very little chance that this may be due to problems with onDestroyView() in some versions of Android.");
         }
 
         state = STATE_DESTROYED;
@@ -351,11 +372,14 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onDetach()}.
      */
     public void onDetach() {
-        // STATE_CREATED - If fragment is retained, this method can be called directly after onDestroyView()
-        // STATE_DESTROYED - Normal flow
-        if (state != STATE_CREATED && state != STATE_DESTROYED) {
+        // STATE_CREATED - If fragment is retained, this method can be called directly after onDestroyView();
+        // STATE_DESTROYED - Normal flow;
+        // STATE_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
+        if (state != STATE_CREATED && state != STATE_DESTROYED && state != STATE_INSTANCE_STATE_SAVED) {
             throw new IllegalStateException(
-                    "onDetach() was called with an invalid state, perhaps you forgot to call onDestroy()? Otherwise, there is very little chance that this may be due to problems with onDestroyView() in some versions of Android.");
+                    "onDetach() was called with an invalid state ("
+                            + state
+                            + "), perhaps you forgot to call onDestroy()? Otherwise, there is very little chance that this may be due to problems with onDestroyView() in some versions of Android.");
         }
 
         state = STATE_INITIALIZED;
@@ -366,7 +390,8 @@ public class ViewControllerFragmentDelegate {
      * after {@code super.onSaveInstanceState(Bundle outState)}.
      */
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        if (state <= STATE_DESTROYED) {
+        // Allow to continue with STATE_INSTANCE_STATE_SAVED.
+        if (state == STATE_DESTROYED) {
             return;
         }
 
@@ -378,6 +403,7 @@ public class ViewControllerFragmentDelegate {
             onStop();
         }
 
+        state = STATE_INSTANCE_STATE_SAVED;
         controller.onControllerSaveInstanceState(outState);
     }
 

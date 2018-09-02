@@ -2,13 +2,11 @@ package com.eightsines.holycycle;
 
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import com.eightsines.holycycle.util.TestUtils;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,10 +15,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 public class ViewControllerFragmentDelegateTest {
-    private static final String NAME_SAVED_INSTANCE_STATE = "savedInstanceState";
-    private static final String NAME_EXTRAS = "extras";
-    private static final String NAME_OUT_STATE = "outState";
-
     private ViewController controller;
     private ViewControllerFragmentDelegate controllerDelegate;
     private ViewTreeObserver.OnWindowFocusChangeListener lastWindowFocusChangeListener;
@@ -233,23 +227,32 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnDestroyViewNoContentLayout() {
         performCreateViewNoContentLayout();
-        mockSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2);
-        controllerDelegate.onDestroyView();
-        ensureNoMoreInteractions();
+
+        TestUtils.runWithMockedSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
+            @Override
+            public void run() {
+                controllerDelegate.onDestroyView();
+                ensureNoMoreInteractions();
+            }
+        });
     }
 
     @Test
     public void testOnDestroyViewHasContentLayout() {
         performCreateView();
-        ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
+        final ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
 
-        mockSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2);
-        controllerDelegate.onDestroyView();
+        TestUtils.runWithMockedSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
+            @Override
+            public void run() {
+                controllerDelegate.onDestroyView();
 
-        Mockito.verify(viewTreeObserver).removeOnWindowFocusChangeListener(lastWindowFocusChangeListener);
-        Assert.assertNull(controllerDelegate.getView());
+                Mockito.verify(viewTreeObserver).removeOnWindowFocusChangeListener(lastWindowFocusChangeListener);
+                Assert.assertNull(controllerDelegate.getView());
 
-        ensureNoMoreInteractions();
+                ensureNoMoreInteractions();
+            }
+        });
     }
 
     @Test
@@ -257,7 +260,6 @@ public class ViewControllerFragmentDelegateTest {
         performCreateView();
         ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
 
-        mockSdkInt(0);
         controllerDelegate.onDestroyView();
 
         Mockito.verifyNoMoreInteractions(viewTreeObserver);
@@ -271,15 +273,19 @@ public class ViewControllerFragmentDelegateTest {
         performStart();
         performStop();
 
-        ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
+        final ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
 
-        mockSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2);
-        controllerDelegate.onDestroyView();
+        TestUtils.runWithMockedSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
+            @Override
+            public void run() {
+                controllerDelegate.onDestroyView();
 
-        Mockito.verify(viewTreeObserver).removeOnWindowFocusChangeListener(lastWindowFocusChangeListener);
-        Assert.assertNull(controllerDelegate.getView());
+                Mockito.verify(viewTreeObserver).removeOnWindowFocusChangeListener(lastWindowFocusChangeListener);
+                Assert.assertNull(controllerDelegate.getView());
 
-        ensureNoMoreInteractions();
+                ensureNoMoreInteractions();
+            }
+        });
     }
 
     @Test
@@ -303,11 +309,15 @@ public class ViewControllerFragmentDelegateTest {
     public void testOnDestroyAfterDestroyView() {
         performCreateViewNoContentLayout();
 
-        mockSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2);
-        controllerDelegate.onDestroyView();
-        controllerDelegate.onDestroy();
+        TestUtils.runWithMockedSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
+            @Override
+            public void run() {
+                controllerDelegate.onDestroyView();
+                controllerDelegate.onDestroy();
 
-        ensureNoMoreInteractions();
+                ensureNoMoreInteractions();
+            }
+        });
     }
 
     @Test
@@ -343,7 +353,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateResumed() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
         performResume(false);
 
         controllerDelegate.onSaveInstanceState(outState);
@@ -357,7 +367,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateStarted() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
         performStart();
 
         controllerDelegate.onSaveInstanceState(outState);
@@ -370,7 +380,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateViewCreated() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
         performCreateViewNoContentLayout();
 
         controllerDelegate.onSaveInstanceState(outState);
@@ -381,7 +391,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateCreated() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
         performCreate();
 
         controllerDelegate.onSaveInstanceState(outState);
@@ -392,7 +402,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateAttached() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
         performAttach();
 
         controllerDelegate.onSaveInstanceState(outState);
@@ -403,7 +413,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateInitialized() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
 
         controllerDelegate.onSaveInstanceState(outState);
 
@@ -413,7 +423,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateDestroyed() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
         performDestroy();
 
         controllerDelegate.onSaveInstanceState(outState);
@@ -587,90 +597,95 @@ public class ViewControllerFragmentDelegateTest {
         performCreateView(false, false, false, Build.VERSION_CODES.JELLY_BEAN_MR2, true);
     }
 
-    private void performCreateView(boolean hasContentLayout,
-            boolean hasPreviousContentView,
-            boolean isPlatformFragment,
-            int sdkInt,
-            boolean shouldPerformCreate) {
+    private void performCreateView(final boolean hasContentLayout,
+            final boolean hasPreviousContentView,
+            final boolean isPlatformFragment,
+            final int sdkInt,
+            final boolean shouldPerformCreate) {
 
-        mockSdkInt(sdkInt);
+        TestUtils.runWithMockedSdkInt(sdkInt, new Runnable() {
+            @Override
+            public void run() {
+                ViewTreeObserver.OnWindowFocusChangeListener currentWindowFocusChangeListener = lastWindowFocusChangeListener;
+                lastWindowFocusChangeListener = null;
 
-        ViewTreeObserver.OnWindowFocusChangeListener currentWindowFocusChangeListener = lastWindowFocusChangeListener;
-        lastWindowFocusChangeListener = null;
+                ViewGroup container = Mockito.mock(ViewGroup.class);
+                LayoutInflater inflater = Mockito.mock(LayoutInflater.class);
+                View contentView = hasPreviousContentView ? controllerDelegate.getView() : Mockito.mock(View.class);
 
-        ViewGroup container = Mockito.mock(ViewGroup.class);
-        LayoutInflater inflater = Mockito.mock(LayoutInflater.class);
-        View contentView = hasPreviousContentView ? controllerDelegate.getView() : Mockito.mock(View.class);
+                ViewTreeObserver viewTreeObserver = hasPreviousContentView
+                        ? contentView.getViewTreeObserver()
+                        : Mockito.mock(ViewTreeObserver.class);
 
-        ViewTreeObserver viewTreeObserver = hasPreviousContentView
-                ? contentView.getViewTreeObserver()
-                : Mockito.mock(ViewTreeObserver.class);
-
-        if (hasPreviousContentView) {
-            Mockito.reset(contentView);
-            Mockito.reset(viewTreeObserver);
-        }
-
-        if (sdkInt >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            Mockito.doAnswer(new Answer() {
-                @Override
-                public Void answer(InvocationOnMock invocation) {
-                    lastWindowFocusChangeListener = invocation.getArgument(0);
-                    return null;
+                if (hasPreviousContentView) {
+                    Mockito.reset(contentView);
+                    Mockito.reset(viewTreeObserver);
                 }
-            })
-                    .when(viewTreeObserver)
-                    .addOnWindowFocusChangeListener(Mockito.any(ViewTreeObserver.OnWindowFocusChangeListener.class));
 
-            Mockito.when(contentView.getViewTreeObserver()).thenReturn(viewTreeObserver);
-        }
+                if (sdkInt >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    Mockito.doAnswer(new Answer() {
+                        @Override
+                        public Void answer(InvocationOnMock invocation) {
+                            lastWindowFocusChangeListener = invocation.getArgument(0);
+                            return null;
+                        }
+                    })
+                            .when(viewTreeObserver)
+                            .addOnWindowFocusChangeListener(Mockito.any(ViewTreeObserver.OnWindowFocusChangeListener.class));
 
-        Mockito.when(inflater.inflate(1, container, false)).thenReturn(contentView);
-        Mockito.when(controller.onControllerGetContentLayoutId()).thenReturn(hasContentLayout ? 1 : 0);
+                    Mockito.when(contentView.getViewTreeObserver()).thenReturn(viewTreeObserver);
+                }
 
-        if (shouldPerformCreate) {
-            performCreate();
-        }
+                Mockito.when(inflater.inflate(1, container, false)).thenReturn(contentView);
+                Mockito.when(controller.onControllerGetContentLayoutId()).thenReturn(hasContentLayout ? 1 : 0);
 
-        if (isPlatformFragment) {
-            controllerDelegate.onCreateView(inflater, container, true);
-        } else {
-            controllerDelegate.onCreateView(inflater, container);
-        }
+                if (shouldPerformCreate) {
+                    performCreate();
+                }
 
-        int getViewTreeObserverInvocationTimes = 0;
+                if (isPlatformFragment) {
+                    controllerDelegate.onCreateView(inflater, container, true);
+                } else {
+                    controllerDelegate.onCreateView(inflater, container);
+                }
 
-        if (hasPreviousContentView && sdkInt >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            getViewTreeObserverInvocationTimes++;
-            Mockito.verify(viewTreeObserver).removeOnWindowFocusChangeListener(currentWindowFocusChangeListener);
-        }
+                int getViewTreeObserverInvocationTimes = 0;
 
-        Mockito.verify(controller).onControllerGetContentLayoutId();
+                if (hasPreviousContentView && sdkInt >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    getViewTreeObserverInvocationTimes++;
+                    Mockito.verify(viewTreeObserver)
+                            .removeOnWindowFocusChangeListener(currentWindowFocusChangeListener);
+                }
 
-        if (hasContentLayout) {
-            Mockito.verify(inflater).inflate(1, container, false);
-        }
+                Mockito.verify(controller).onControllerGetContentLayoutId();
 
-        if (isPlatformFragment && sdkInt < Build.VERSION_CODES.HONEYCOMB_MR2) {
-            Mockito.verify(controller).onControllerContentViewCreated();
-        }
+                if (hasContentLayout) {
+                    Mockito.verify(inflater).inflate(1, container, false);
+                }
 
-        if (hasContentLayout && sdkInt >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            getViewTreeObserverInvocationTimes++;
+                if (isPlatformFragment && sdkInt < Build.VERSION_CODES.HONEYCOMB_MR2) {
+                    Mockito.verify(controller).onControllerContentViewCreated();
+                }
 
-            Mockito.verify(viewTreeObserver)
-                    .addOnWindowFocusChangeListener(Mockito.any(ViewTreeObserver.OnWindowFocusChangeListener.class));
+                if (hasContentLayout && sdkInt >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    getViewTreeObserverInvocationTimes++;
 
-            Assert.assertNotNull(lastWindowFocusChangeListener);
-        } else {
-            Assert.assertNull(lastWindowFocusChangeListener);
-        }
+                    Mockito.verify(viewTreeObserver)
+                            .addOnWindowFocusChangeListener(Mockito.any(ViewTreeObserver.OnWindowFocusChangeListener.class));
 
-        if (getViewTreeObserverInvocationTimes > 0) {
-            Mockito.verify(contentView, Mockito.times(getViewTreeObserverInvocationTimes)).getViewTreeObserver();
-        }
+                    Assert.assertNotNull(lastWindowFocusChangeListener);
+                } else {
+                    Assert.assertNull(lastWindowFocusChangeListener);
+                }
 
-        ensureNoMoreInteractions();
+                if (getViewTreeObserverInvocationTimes > 0) {
+                    Mockito.verify(contentView, Mockito.times(getViewTreeObserverInvocationTimes))
+                            .getViewTreeObserver();
+                }
+
+                ensureNoMoreInteractions();
+            }
+        });
     }
 
     private void performCreate() {
@@ -678,8 +693,10 @@ public class ViewControllerFragmentDelegateTest {
     }
 
     private void performCreate(boolean hasSavedInstanceState, boolean hasExtras) {
-        Bundle savedInstanceState = hasSavedInstanceState ? createMockBundle(NAME_SAVED_INSTANCE_STATE) : null;
-        Bundle extras = hasExtras ? createMockBundle(NAME_EXTRAS) : null;
+        Bundle savedInstanceState = hasSavedInstanceState
+                ? TestUtils.createMockBundle(TestUtils.BUNDLE_SAVED_INSTANCE_STATE)
+                : null;
+        Bundle extras = hasExtras ? TestUtils.createMockBundle(TestUtils.BUNDLE_EXTRAS) : null;
 
         performAttach();
         controllerDelegate.onCreate(savedInstanceState, extras);
@@ -700,37 +717,5 @@ public class ViewControllerFragmentDelegateTest {
 
     private void ensureNoMoreInteractions() {
         Mockito.verifyNoMoreInteractions(controller);
-    }
-
-    private Bundle createMockBundle(@NonNull String name) {
-        Bundle bundle = Mockito.mock(Bundle.class);
-        Mockito.when(bundle.toString()).thenReturn("Bundle#" + name);
-        return bundle;
-    }
-
-    private static void mockSdkInt(int newValue) {
-        try {
-            mockStaticField(Build.VERSION.class.getField("SDK_INT"), newValue);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void mockStaticField(Field field, Object newValue) {
-        field.setAccessible(true);
-
-        try {
-            //noinspection JavaReflectionMemberAccess
-            Field modifiersField = Field.class.getDeclaredField("modifiers");
-
-            modifiersField.setAccessible(true);
-            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-
-            field.set(null, newValue);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

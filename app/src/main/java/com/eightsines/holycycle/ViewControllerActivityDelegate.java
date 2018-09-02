@@ -17,8 +17,7 @@ import com.eightsines.holycycle.app.ViewControllerFragmentActivity;
  * use this class. See the {@link ViewControllerActivity} for example of use.</p>
  */
 public class ViewControllerActivityDelegate {
-    private static final int STATE_DESTROYED = -3;
-    private static final int STATE_FINISHED = -2;
+    private static final int STATE_DESTROYED = -2;
     private static final int STATE_INSTANCE_STATE_SAVED = -1;
     private static final int STATE_INITIALIZED = 0;
     private static final int STATE_CREATED = 1;
@@ -30,6 +29,7 @@ public class ViewControllerActivityDelegate {
     private int state = STATE_INITIALIZED;
     private int contentLayoutResId;
     private boolean hasWindowFocus;
+    private boolean isFinished;
 
     /**
      * View controller delegate constructor. Mostly you want use it like
@@ -53,7 +53,7 @@ public class ViewControllerActivityDelegate {
      * @param savedInstanceState Pass {@code savedInstanceState} parameter here.
      */
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        if (state == STATE_DESTROYED || state == STATE_FINISHED) {
+        if (state == STATE_DESTROYED || isFinished) {
             return;
         }
 
@@ -69,21 +69,21 @@ public class ViewControllerActivityDelegate {
         // Checking intent for null is redundant, but leaved here for the great justice.
         controller.onControllerCreate(intent == null ? null : intent.getExtras());
 
-        if (state == STATE_FINISHED) {
+        if (isFinished) {
             return;
         }
 
         if (savedInstanceState != null) {
             controller.onControllerRestoreInstanceState(savedInstanceState);
 
-            if (state == STATE_FINISHED) {
+            if (isFinished) {
                 return;
             }
         }
 
         contentLayoutResId = controller.onControllerGetContentLayoutId();
 
-        if (state != STATE_FINISHED && contentLayoutResId != 0) {
+        if (!isFinished && contentLayoutResId != 0) {
             owner.setContentView(contentLayoutResId);
             controller.onControllerContentViewCreated();
         }
@@ -93,7 +93,7 @@ public class ViewControllerActivityDelegate {
      * Call this method from {@link Activity#onRestart()} after {@code super.onRestart()}.
      */
     public void onRestart() {
-        if (state == STATE_DESTROYED || state == STATE_FINISHED) {
+        if (state == STATE_DESTROYED || isFinished) {
             return;
         }
 
@@ -111,7 +111,7 @@ public class ViewControllerActivityDelegate {
      * Call this method from {@link Activity#onStart()} after {@code super.onStart()}.
      */
     public void onStart() {
-        if (state == STATE_DESTROYED || state == STATE_FINISHED) {
+        if (state == STATE_DESTROYED || isFinished) {
             return;
         }
 
@@ -130,7 +130,7 @@ public class ViewControllerActivityDelegate {
      * Call this method from {@link Activity#onResume()} after {@code super.onResume()}.
      */
     public void onResume() {
-        if (state == STATE_DESTROYED || state == STATE_FINISHED) {
+        if (state == STATE_DESTROYED || isFinished) {
             return;
         }
 
@@ -144,7 +144,7 @@ public class ViewControllerActivityDelegate {
         state = STATE_RESUMED;
         controller.onControllerResume();
 
-        if (state != STATE_FINISHED && hasWindowFocus) {
+        if (!isFinished && hasWindowFocus) {
             controller.onControllerFocus();
         }
     }
@@ -157,7 +157,11 @@ public class ViewControllerActivityDelegate {
             return;
         }
 
-        if (state != STATE_RESUMED && state != STATE_FINISHED) {
+        if (state != STATE_RESUMED) {
+            if (isFinished) {
+                return;
+            }
+
             throw new IllegalStateException(
                     "onPause() was called with an invalid state ("
                             + state
@@ -182,7 +186,11 @@ public class ViewControllerActivityDelegate {
             return;
         }
 
-        if (state != STATE_STARTED && state != STATE_FINISHED) {
+        if (state != STATE_STARTED) {
+            if (isFinished) {
+                return;
+            }
+
             throw new IllegalStateException(
                     "onStop() was called with an invalid state (" + state + "), perhaps you forgot to call onPause()?");
         }
@@ -199,7 +207,7 @@ public class ViewControllerActivityDelegate {
             return;
         }
 
-        if (state != STATE_CREATED && state != STATE_INSTANCE_STATE_SAVED && state != STATE_FINISHED) {
+        if (state != STATE_CREATED && state != STATE_INSTANCE_STATE_SAVED && !isFinished) {
             throw new IllegalStateException(
                     "onDestroy() was called with an invalid state ("
                             + state
@@ -214,24 +222,21 @@ public class ViewControllerActivityDelegate {
      * after {@code super.onSaveInstanceState(Bundle outState)}.
      */
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        // Allow to continue with STATE_INSTANCE_STATE_SAVED and STATE_FINISHED.
+        // Allow to continue with STATE_INSTANCE_STATE_SAVED or isFinished.
         if (state == STATE_DESTROYED) {
             return;
         }
 
-        // Such strange "if" because state can be changed to STATE_FINISHED inside onPause().
-        if (state == STATE_RESUMED || state == STATE_STARTED) {
-            if (state == STATE_RESUMED) {
-                onPause();
-            }
+        if (state == STATE_RESUMED) {
+            onPause();
+        }
 
+        if (state == STATE_STARTED) {
             onStop();
         }
 
-        controller.onControllerSaveInstanceState(outState);
-
-        // Override possible STATE_FINISHED.
         state = STATE_INSTANCE_STATE_SAVED;
+        controller.onControllerSaveInstanceState(outState);
     }
 
     /**
@@ -260,9 +265,7 @@ public class ViewControllerActivityDelegate {
      * Call this method from {@link Activity#finish()} before {@code super.finish()}.
      */
     public void finish() {
-        if (state != STATE_DESTROYED && state != STATE_INSTANCE_STATE_SAVED) {
-            state = STATE_FINISHED;
-        }
+        isFinished = true;
     }
 
     /**

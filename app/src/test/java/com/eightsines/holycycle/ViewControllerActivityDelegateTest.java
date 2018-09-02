@@ -293,7 +293,15 @@ public class ViewControllerActivityDelegateTest {
     public void testOnPauseFinished() {
         controllerDelegate.finish();
         controllerDelegate.onPause();
-        verifyPause(false);
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnPauseAfterResumeFinished() {
+        performResume(true);
+        controllerDelegate.finish();
+        controllerDelegate.onPause();
+        verifyPause(true);
     }
 
     @Test
@@ -329,6 +337,14 @@ public class ViewControllerActivityDelegateTest {
 
     @Test
     public void testOnStopFinished() {
+        controllerDelegate.finish();
+        controllerDelegate.onStop();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnStopAfterStartFinished() {
+        performStart();
         controllerDelegate.finish();
         controllerDelegate.onStop();
         verifyStop();
