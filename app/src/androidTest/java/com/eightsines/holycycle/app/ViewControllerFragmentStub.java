@@ -4,10 +4,10 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.eightsines.holycycle.util.CallRecorder;
-import com.eightsines.holycycle.util.ActivityStubDelegate;
+import com.eightsines.holycycle.util.FragmentStubDelegate;
 
-public class ViewControllerAppCompatActivityStub extends ViewControllerAppCompatActivity implements CallRecorder {
-    private ActivityStubDelegate<ViewControllerAppCompatActivityStub> delegate = new ActivityStubDelegate<>(this);
+public class ViewControllerFragmentStub extends ViewControllerFragment implements CallRecorder {
+    private FragmentStubDelegate delegate = new FragmentStubDelegate(this);
 
     @Override
     public String getCalls() {

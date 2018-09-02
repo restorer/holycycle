@@ -1,6 +1,6 @@
 package com.eightsines.holycycle.util;
 
-public interface TestActivityStub {
+public interface CallRecorder {
     String getCalls();
     void resetCalls();
 }

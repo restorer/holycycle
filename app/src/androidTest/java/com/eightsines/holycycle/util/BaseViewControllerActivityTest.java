@@ -18,13 +18,13 @@ import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public abstract class BaseViewControllerActivityTest<T extends Activity & TestActivityStub> {
+public abstract class BaseViewControllerActivityTest<T extends Activity & CallRecorder> {
     @Rule
     public ActivityTestRule<TestLauncherActivity> launcherActivityRule = new ActivityTestRule<>(TestLauncherActivity.class);
 
     protected abstract ActivityTestRule<T> getActivityRule();
 
-    private TestActivityStub stub;
+    private CallRecorder stub;
 
     @Before
     public void setUp() {

@@ -6,54 +6,43 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import com.eightsines.holycycle.R;
 import com.eightsines.holycycle.ViewController;
 import com.eightsines.holycycle.app.TestCoverActivity;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-public class TestActivityStubDelegate<VC extends Activity & ViewController> implements ViewController, TestActivityStub {
+public class ActivityStubDelegate<VC extends Activity & ViewController> extends SimpleCallRecorder
+        implements ViewController {
+
     private VC owner;
-    private List<String> callsList = new CopyOnWriteArrayList<>();
     private Button showProgressButton;
     private Button startActivityButton;
 
-    public TestActivityStubDelegate(VC owner) {
+    public ActivityStubDelegate(VC owner) {
+        super();
         this.owner = owner;
     }
 
     @Override
-    public String getCalls() {
-        return TextUtils.join(";", callsList);
-    }
-
-    @Override
-    public void resetCalls() {
-        callsList.clear();
-    }
-
-    @Override
     public void onControllerCreate(@Nullable Bundle extras) {
-        callsList.add("create:" + (extras == null ? "N" : "Y"));
+        recordCall("create", extras == null ? "N" : "Y");
     }
 
     @Override
     public void onControllerRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        callsList.add("restoreInstanceState");
+        recordCall("restoreInstanceState");
     }
 
     @Override
     public int onControllerGetContentLayoutId() {
-        callsList.add("getContentLayoutId");
-        return R.layout.activity_stub;
+        recordCall("getContentLayoutId");
+        return R.layout.test_stub;
     }
 
     @Override
     public void onControllerContentViewCreated() {
-        callsList.add("contentViewCreated");
+        recordCall("contentViewCreated");
 
         showProgressButton = findViewById(R.id.show_progress);
         startActivityButton = findViewById(R.id.start_activity);
@@ -61,7 +50,7 @@ public class TestActivityStubDelegate<VC extends Activity & ViewController> impl
 
     @Override
     public void onControllerStart() {
-        callsList.add("start");
+        recordCall("start");
 
         showProgressButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,32 +69,32 @@ public class TestActivityStubDelegate<VC extends Activity & ViewController> impl
 
     @Override
     public void onControllerResume() {
-        callsList.add("resume");
+        recordCall("resume");
     }
 
     @Override
     public void onControllerFocus() {
-        callsList.add("focus");
+        recordCall("focus");
     }
 
     @Override
     public void onControllerBlur() {
-        callsList.add("blur");
+        recordCall("blur");
     }
 
     @Override
     public void onControllerPause() {
-        callsList.add("pause");
+        recordCall("pause");
     }
 
     @Override
     public void onControllerPersistUserData() {
-        callsList.add("persistUserData");
+        recordCall("persistUserData");
     }
 
     @Override
     public void onControllerStop() {
-        callsList.add("stop");
+        recordCall("stop");
 
         showProgressButton.setOnClickListener(null);
         startActivityButton.setOnClickListener(null);
@@ -113,7 +102,7 @@ public class TestActivityStubDelegate<VC extends Activity & ViewController> impl
 
     @Override
     public void onControllerSaveInstanceState(@NonNull Bundle outState) {
-        callsList.add("saveInstanceState");
+        recordCall("saveInstanceState");
     }
 
     @Nullable
