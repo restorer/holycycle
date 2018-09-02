@@ -29,9 +29,9 @@ public final class TestUtils {
         return intent;
     }
 
-    public static void runWithMockedSdkInt(int newValue, Runnable runnable) {
+    public static void runWithMockedBuildVersion(int sdkInt, Runnable runnable) {
         try {
-            mockStaticField(Build.VERSION.class.getField("SDK_INT"), newValue);
+            mockStaticField(Build.VERSION.class.getField("SDK_INT"), sdkInt);
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
         }

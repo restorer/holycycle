@@ -706,5 +706,6 @@ public class ViewControllerActivityDelegateTest {
 
     private void ensureNoMoreInteractions() {
         Mockito.verifyNoMoreInteractions(controller);
+        Mockito.reset(controller);
     }
 }

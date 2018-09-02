@@ -27,35 +27,51 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnAttach() {
-        performAttach();
+        performAndVerifyAttach();
+        controllerDelegate.onCreate(null, null);
     }
 
     @Test
     public void testOnAttachDestroyed() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
         controllerDelegate.onAttach();
         ensureNoMoreInteractions();
     }
 
     @Test(expected = IllegalStateException.class)
     public void testOnAttachInvalidState() {
-        performAttach();
+        performAndVerifyAttach();
         controllerDelegate.onAttach();
     }
 
     @Test
-    public void testOnCreateEverything() {
-        performCreate();
+    public void testOnCreate() {
+        performAndVerifyCreate();
+        controllerDelegate.onDestroy();
     }
 
     @Test
-    public void testOnCreateEverythingButNullState() {
-        performCreate(false, true);
+    public void testOnCreateNullState() {
+        performAndVerifyCreate(false, true);
+        controllerDelegate.onDestroy();
     }
 
     @Test
-    public void testOnCreateEverythingButNullExtras() {
-        performCreate(true, false);
+    public void testOnCreateNullExtras() {
+        performAndVerifyCreate(true, false);
+        controllerDelegate.onDestroy();
+    }
+
+    @Test
+    public void testOnCreateDestroyed() {
+        performAndVerifyDestroyAfterCreate();
+        controllerDelegate.onCreate(null, null);
+        ensureNoMoreInteractions();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testOnCreateInvalidState() {
+        controllerDelegate.onCreate(null, null);
     }
 
     @Test
@@ -107,13 +123,12 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnCreateViewDestroyed() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
 
         ViewGroup container = Mockito.mock(ViewGroup.class);
         LayoutInflater inflater = Mockito.mock(LayoutInflater.class);
 
         controllerDelegate.onCreateView(inflater, container);
-
         ensureNoMoreInteractions();
     }
 
@@ -124,12 +139,12 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnViewCreated() {
-        performViewCreated();
+        performAndVerifyViewCreatedAfterCreateView();
     }
 
     @Test
     public void testOnViewCreatedDestroyed() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
         controllerDelegate.onViewCreated();
         ensureNoMoreInteractions();
     }
@@ -141,12 +156,31 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnStart() {
-        performStart();
+        performAndVerifyStartAfterViewCreated();
+        controllerDelegate.onResume();
+    }
+
+    @Test
+    public void testOnStartViewCreated() {
+        performAndVerifyViewCreatedAfterCreateView();
+        controllerDelegate.onStart();
+        verifyStart();
+        controllerDelegate.onResume();
+    }
+
+    @Test
+    public void testOnStartAfterStop() {
+        performAndVerifyStartAfterViewCreated();
+        controllerDelegate.onStop();
+        verifyStop();
+        controllerDelegate.onStart();
+        verifyStart();
+        controllerDelegate.onResume();
     }
 
     @Test
     public void testOnStartDestroyed() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
         controllerDelegate.onStart();
         ensureNoMoreInteractions();
     }
@@ -159,16 +193,18 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnResumeNoFocus() {
         performResume(false);
+        controllerDelegate.onPause();
     }
 
     @Test
     public void testOnResumeHasFocus() {
         performResume(true);
+        controllerDelegate.onPause();
     }
 
     @Test
     public void testOnResumeDestroyed() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
         controllerDelegate.onResume();
         ensureNoMoreInteractions();
     }
@@ -180,17 +216,19 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnPauseNoFocus() {
-        performPauseAfterResume(false);
+        performAndVerifyPauseAfterResume(false);
+        controllerDelegate.onResume();
     }
 
     @Test
     public void testOnPauseHasFocus() {
-        performPauseAfterResume(true);
+        performAndVerifyPauseAfterResume(true);
+        controllerDelegate.onResume();
     }
 
     @Test
     public void testOnPauseDestroyed() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
         controllerDelegate.onPause();
         ensureNoMoreInteractions();
     }
@@ -202,19 +240,21 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnStop() {
-        performStart();
-        performStop();
+        performAndVerifyStartAfterViewCreated();
+        performAndVerifyStop();
+        controllerDelegate.onStart();
     }
 
     @Test
     public void testOnStopAfterPause() {
-        performPauseAfterResume(false);
-        performStop();
+        performAndVerifyPauseAfterResume(false);
+        performAndVerifyStop();
+        controllerDelegate.onStart();
     }
 
     @Test
     public void testOnStopDestroyed() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
         controllerDelegate.onStop();
         ensureNoMoreInteractions();
     }
@@ -228,7 +268,7 @@ public class ViewControllerFragmentDelegateTest {
     public void testOnDestroyViewNoContentLayout() {
         performCreateViewNoContentLayout();
 
-        TestUtils.runWithMockedSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
+        TestUtils.runWithMockedBuildVersion(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
             @Override
             public void run() {
                 controllerDelegate.onDestroyView();
@@ -242,7 +282,7 @@ public class ViewControllerFragmentDelegateTest {
         performCreateView();
         final ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
 
-        TestUtils.runWithMockedSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
+        TestUtils.runWithMockedBuildVersion(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
             @Override
             public void run() {
                 controllerDelegate.onDestroyView();
@@ -270,12 +310,12 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnDestroyViewAfterStop() {
-        performStart();
-        performStop();
+        performAndVerifyStartAfterViewCreated();
+        performAndVerifyStop();
 
         final ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
 
-        TestUtils.runWithMockedSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
+        TestUtils.runWithMockedBuildVersion(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
             @Override
             public void run() {
                 controllerDelegate.onDestroyView();
@@ -290,7 +330,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnDestroyViewDestroyed() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
         controllerDelegate.onDestroyView();
         ensureNoMoreInteractions();
     }
@@ -302,14 +342,14 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnDestroy() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
     }
 
     @Test
     public void testOnDestroyAfterDestroyView() {
         performCreateViewNoContentLayout();
 
-        TestUtils.runWithMockedSdkInt(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
+        TestUtils.runWithMockedBuildVersion(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
             @Override
             public void run() {
                 controllerDelegate.onDestroyView();
@@ -322,7 +362,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnDestroyDestroyed() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
         controllerDelegate.onDestroy();
         ensureNoMoreInteractions();
     }
@@ -334,14 +374,14 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnDetach() {
-        performCreate();
+        performAndVerifyCreate();
         controllerDelegate.onDetach();
         ensureNoMoreInteractions();
     }
 
     @Test
     public void testOnDetachAfterDestroy() {
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
         controllerDelegate.onDetach();
         ensureNoMoreInteractions();
     }
@@ -359,7 +399,7 @@ public class ViewControllerFragmentDelegateTest {
         controllerDelegate.onSaveInstanceState(outState);
 
         verifyPause(false);
-        verifyStop();
+        verifyStop(false);
         Mockito.verify(controller).onControllerSaveInstanceState(outState);
 
         ensureNoMoreInteractions();
@@ -368,11 +408,11 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnSaveInstanceStateStarted() {
         Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
-        performStart();
+        performAndVerifyStartAfterViewCreated();
 
         controllerDelegate.onSaveInstanceState(outState);
 
-        verifyStop();
+        verifyStop(false);
         Mockito.verify(controller).onControllerSaveInstanceState(outState);
 
         ensureNoMoreInteractions();
@@ -392,7 +432,7 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnSaveInstanceStateCreated() {
         Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
-        performCreate();
+        performAndVerifyCreate();
 
         controllerDelegate.onSaveInstanceState(outState);
 
@@ -403,7 +443,7 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnSaveInstanceStateAttached() {
         Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
-        performAttach();
+        performAndVerifyAttach();
 
         controllerDelegate.onSaveInstanceState(outState);
 
@@ -424,7 +464,7 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnSaveInstanceStateDestroyed() {
         Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
-        performDestroy();
+        performAndVerifyDestroyAfterCreate();
 
         controllerDelegate.onSaveInstanceState(outState);
 
@@ -433,7 +473,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnWindowFocusChangeListenerNotResumedAndHasFocus() {
-        performStart();
+        performAndVerifyStartAfterViewCreated();
         lastWindowFocusChangeListener.onWindowFocusChanged(true);
         controllerDelegate.onResume();
         verifyResume(true);
@@ -441,7 +481,7 @@ public class ViewControllerFragmentDelegateTest {
 
     @Test
     public void testOnWindowFocusChangeListenerNotResumedAndHasNoFocus() {
-        performStart();
+        performAndVerifyStartAfterViewCreated();
         lastWindowFocusChangeListener.onWindowFocusChanged(false);
         controllerDelegate.onResume();
         verifyResume(false);
@@ -450,9 +490,7 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnWindowFocusChangeListenerResumedWithNoFocusAndHasFocus() {
         performResume(false);
-
         lastWindowFocusChangeListener.onWindowFocusChanged(true);
-
         Mockito.verify(controller).onControllerFocus();
         ensureNoMoreInteractions();
     }
@@ -474,9 +512,7 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnWindowFocusChangeListenerResumedWithFocusAndHasNoFocus() {
         performResume(true);
-
         lastWindowFocusChangeListener.onWindowFocusChanged(false);
-
         Mockito.verify(controller).onControllerBlur();
         ensureNoMoreInteractions();
     }
@@ -509,23 +545,30 @@ public class ViewControllerFragmentDelegateTest {
         Assert.assertNull(controllerDelegate.findViewById(1));
     }
 
-    private void performDestroy() {
-        performCreate(false, false);
+    private void performAndVerifyDestroyAfterCreate() {
+        performAndVerifyCreate(false, false);
         controllerDelegate.onDestroy();
         ensureNoMoreInteractions();
     }
 
-    private void performStop() {
+    private void performAndVerifyStop() {
         controllerDelegate.onStop();
         verifyStop();
-        ensureNoMoreInteractions();
     }
 
     private void verifyStop() {
-        Mockito.verify(controller).onControllerStop();
+        verifyStop(true);
     }
 
-    private void performPauseAfterResume(boolean hasFocus) {
+    private void verifyStop(boolean shouldEnsureNoMoreInteractions) {
+        Mockito.verify(controller).onControllerStop();
+
+        if (shouldEnsureNoMoreInteractions) {
+            ensureNoMoreInteractions();
+        }
+    }
+
+    private void performAndVerifyPauseAfterResume(boolean hasFocus) {
         performResume(hasFocus);
         controllerDelegate.onPause();
         verifyPause(hasFocus);
@@ -542,7 +585,7 @@ public class ViewControllerFragmentDelegateTest {
     }
 
     private void performResume(boolean hasFocus) {
-        performStart();
+        performAndVerifyStartAfterViewCreated();
 
         lastWindowFocusChangeListener.onWindowFocusChanged(hasFocus);
         controllerDelegate.onResume();
@@ -560,14 +603,18 @@ public class ViewControllerFragmentDelegateTest {
         ensureNoMoreInteractions();
     }
 
-    private void performStart() {
-        performViewCreated();
+    private void performAndVerifyStartAfterViewCreated() {
+        performAndVerifyViewCreatedAfterCreateView();
         controllerDelegate.onStart();
+        verifyStart();
+    }
+
+    private void verifyStart() {
         Mockito.verify(controller).onControllerStart();
         ensureNoMoreInteractions();
     }
 
-    private void performViewCreated() {
+    private void performAndVerifyViewCreatedAfterCreateView() {
         performCreateView();
         controllerDelegate.onViewCreated();
         Mockito.verify(controller).onControllerContentViewCreated();
@@ -575,6 +622,9 @@ public class ViewControllerFragmentDelegateTest {
     }
 
     private void checkFocusAfterCreateView(boolean shouldHasWindowFocus) {
+        controllerDelegate.onViewCreated();
+        Mockito.verify(controller).onControllerContentViewCreated();
+
         controllerDelegate.onStart();
         Mockito.verify(controller).onControllerStart();
         ensureNoMoreInteractions();
@@ -603,7 +653,11 @@ public class ViewControllerFragmentDelegateTest {
             final int sdkInt,
             final boolean shouldPerformCreate) {
 
-        TestUtils.runWithMockedSdkInt(sdkInt, new Runnable() {
+        if (shouldPerformCreate) {
+            performAndVerifyCreate();
+        }
+
+        TestUtils.runWithMockedBuildVersion(sdkInt, new Runnable() {
             @Override
             public void run() {
                 ViewTreeObserver.OnWindowFocusChangeListener currentWindowFocusChangeListener = lastWindowFocusChangeListener;
@@ -639,10 +693,6 @@ public class ViewControllerFragmentDelegateTest {
                 Mockito.when(inflater.inflate(1, container, false)).thenReturn(contentView);
                 Mockito.when(controller.onControllerGetContentLayoutId()).thenReturn(hasContentLayout ? 1 : 0);
 
-                if (shouldPerformCreate) {
-                    performCreate();
-                }
-
                 if (isPlatformFragment) {
                     controllerDelegate.onCreateView(inflater, container, true);
                 } else {
@@ -653,6 +703,7 @@ public class ViewControllerFragmentDelegateTest {
 
                 if (hasPreviousContentView && sdkInt >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                     getViewTreeObserverInvocationTimes++;
+
                     Mockito.verify(viewTreeObserver)
                             .removeOnWindowFocusChangeListener(currentWindowFocusChangeListener);
                 }
@@ -688,17 +739,18 @@ public class ViewControllerFragmentDelegateTest {
         });
     }
 
-    private void performCreate() {
-        performCreate(true, true);
+    private void performAndVerifyCreate() {
+        performAndVerifyCreate(true, true);
     }
 
-    private void performCreate(boolean hasSavedInstanceState, boolean hasExtras) {
+    private void performAndVerifyCreate(boolean hasSavedInstanceState, boolean hasExtras) {
         Bundle savedInstanceState = hasSavedInstanceState
                 ? TestUtils.createMockBundle(TestUtils.BUNDLE_SAVED_INSTANCE_STATE)
                 : null;
+
         Bundle extras = hasExtras ? TestUtils.createMockBundle(TestUtils.BUNDLE_EXTRAS) : null;
 
-        performAttach();
+        performAndVerifyAttach();
         controllerDelegate.onCreate(savedInstanceState, extras);
 
         Mockito.verify(controller).onControllerCreate(extras);
@@ -710,12 +762,13 @@ public class ViewControllerFragmentDelegateTest {
         ensureNoMoreInteractions();
     }
 
-    private void performAttach() {
+    private void performAndVerifyAttach() {
         controllerDelegate.onAttach();
         ensureNoMoreInteractions();
     }
 
     private void ensureNoMoreInteractions() {
         Mockito.verifyNoMoreInteractions(controller);
+        Mockito.reset(controller);
     }
 }
