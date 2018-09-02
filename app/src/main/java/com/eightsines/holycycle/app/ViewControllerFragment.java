@@ -1,20 +1,20 @@
-package com.eightsines.holycycle;
+package com.eightsines.holycycle.app;
 
-import android.app.Fragment;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import com.eightsines.holycycle.ViewController;
+import com.eightsines.holycycle.ViewControllerFragmentDelegate;
 
-public class PlatformFragmentViewController extends Fragment implements ViewController {
+public abstract class ViewControllerFragment extends Fragment implements ViewController {
     private ViewControllerFragmentDelegate controllerDelegate;
 
-    public PlatformFragmentViewController() {
+    public ViewControllerFragment() {
         super();
         controllerDelegate = new ViewControllerFragmentDelegate(this);
     }
@@ -37,10 +37,9 @@ public class PlatformFragmentViewController extends Fragment implements ViewCont
             @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
 
-        return controllerDelegate.onCreateView(inflater, container, true);
+        return controllerDelegate.onCreateView(inflater, container);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR2)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -142,12 +141,6 @@ public class PlatformFragmentViewController extends Fragment implements ViewCont
 
     @Override
     public void onControllerSaveInstanceState(@NonNull Bundle outState) {
-    }
-
-    @Nullable
-    @Override
-    public View getView() {
-        return controllerDelegate.getView();
     }
 
     @Nullable

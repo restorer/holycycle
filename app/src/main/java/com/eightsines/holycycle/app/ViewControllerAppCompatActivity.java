@@ -1,12 +1,14 @@
-package com.eightsines.holycycle;
+package com.eightsines.holycycle.app;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import com.eightsines.holycycle.ViewController;
+import com.eightsines.holycycle.ViewControllerActivityDelegate;
 
-public abstract class ActivityViewController extends Activity implements ViewController {
+public abstract class ViewControllerAppCompatActivity extends AppCompatActivity implements ViewController {
     private ViewControllerActivityDelegate controllerDelegate;
 
     @Override

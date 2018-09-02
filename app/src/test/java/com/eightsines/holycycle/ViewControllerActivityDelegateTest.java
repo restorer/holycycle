@@ -3,9 +3,8 @@ package com.eightsines.holycycle;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.View;
+import com.eightsines.holycycle.util.TestUtils;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,10 +13,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 public class ViewControllerActivityDelegateTest {
-    private static final String NAME_EXTRAS = "extras";
-    private static final String NAME_SAVED_INSTANCE_STATE = "savedInstanceState";
-    private static final String NAME_OUT_STATE = "outState";
-
     private Activity activity;
     private ViewController controller;
     private ViewControllerActivityDelegate controllerDelegate;
@@ -30,30 +25,34 @@ public class ViewControllerActivityDelegateTest {
     }
 
     @Test
-    public void testOnCreateEverything() {
+    public void testOnCreate() {
         performCreate();
+        controllerDelegate.onStart();
     }
 
     @Test
-    public void testOnCreateEverythingButNullExtras() {
+    public void testOnCreateNullExtras() {
         performCreate(false, true, true);
+        controllerDelegate.onStart();
     }
 
     @Test
-    public void testOnCreateEverythingButNullState() {
+    public void testOnCreateNullState() {
         performCreate(true, false, true);
+        controllerDelegate.onStart();
     }
 
     @Test
     public void testOnCreateNoContentLayoutId() {
         performCreate(true, true, false);
+        controllerDelegate.onStart();
     }
 
     @Test
     public void testOnCreateFinishInGetContentLayoutId() {
-        Bundle extras = createMockBundle(NAME_EXTRAS);
-        Intent intent = createMockIntent(extras);
-        Bundle savedInstanceState = createMockBundle(NAME_SAVED_INSTANCE_STATE);
+        Bundle extras = TestUtils.createMockBundle(TestUtils.BUNDLE_EXTRAS);
+        Intent intent = TestUtils.createMockIntent(extras);
+        Bundle savedInstanceState = TestUtils.createMockBundle(TestUtils.BUNDLE_SAVED_INSTANCE_STATE);
 
         Mockito.when(activity.getIntent()).thenReturn(intent);
 
@@ -77,9 +76,9 @@ public class ViewControllerActivityDelegateTest {
 
     @Test
     public void testOnCreateFinishInRestoreInstanceState() {
-        Bundle extras = createMockBundle(NAME_EXTRAS);
-        Intent intent = createMockIntent(extras);
-        Bundle savedInstanceState = createMockBundle(NAME_SAVED_INSTANCE_STATE);
+        Bundle extras = TestUtils.createMockBundle(TestUtils.BUNDLE_EXTRAS);
+        Intent intent = TestUtils.createMockIntent(extras);
+        Bundle savedInstanceState = TestUtils.createMockBundle(TestUtils.BUNDLE_SAVED_INSTANCE_STATE);
 
         Mockito.when(activity.getIntent()).thenReturn(intent);
 
@@ -101,10 +100,10 @@ public class ViewControllerActivityDelegateTest {
     }
 
     @Test
-    public void testOnCreateFinishInControllerCreate() {
-        Bundle extras = createMockBundle(NAME_EXTRAS);
-        Intent intent = createMockIntent(extras);
-        Bundle savedInstanceState = createMockBundle(NAME_SAVED_INSTANCE_STATE);
+    public void testOnCreateFinishInCreate() {
+        Bundle extras = TestUtils.createMockBundle(TestUtils.BUNDLE_EXTRAS);
+        Intent intent = TestUtils.createMockIntent(extras);
+        Bundle savedInstanceState = TestUtils.createMockBundle(TestUtils.BUNDLE_SAVED_INSTANCE_STATE);
 
         Mockito.when(activity.getIntent()).thenReturn(intent);
 
@@ -125,10 +124,20 @@ public class ViewControllerActivityDelegateTest {
     }
 
     @Test
-    public void testOnCreateDestroyed() {
-        Bundle savedInstanceState = createMockBundle(NAME_SAVED_INSTANCE_STATE);
+    public void testOnCreateFinished() {
+        Bundle savedInstanceState = TestUtils.createMockBundle(TestUtils.BUNDLE_SAVED_INSTANCE_STATE);
 
         controllerDelegate.finish();
+        controllerDelegate.onCreate(savedInstanceState);
+
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnCreateDestroyed() {
+        Bundle savedInstanceState = TestUtils.createMockBundle(TestUtils.BUNDLE_SAVED_INSTANCE_STATE);
+
+        performDestroy();
         controllerDelegate.onCreate(savedInstanceState);
 
         ensureNoMoreInteractions();
@@ -141,15 +150,39 @@ public class ViewControllerActivityDelegateTest {
     }
 
     @Test
+    public void testOnRestart() {
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
+
+        controllerDelegate.onSaveInstanceState(outState);
+        controllerDelegate.onRestart();
+        controllerDelegate.onStart();
+    }
+
+    @Test
+    public void testOnDestroyed() {
+        performDestroy();
+        controllerDelegate.onRestart();
+        controllerDelegate.onStart();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
     public void testOnStart() {
         performStart();
+        controllerDelegate.onResume();
+    }
+
+    @Test
+    public void testOnStartFinished() {
+        controllerDelegate.finish();
+        controllerDelegate.onStart();
+        ensureNoMoreInteractions();
     }
 
     @Test
     public void testOnStartDestroyed() {
-        controllerDelegate.finish();
+        performDestroy();
         controllerDelegate.onStart();
-
         ensureNoMoreInteractions();
     }
 
@@ -161,11 +194,13 @@ public class ViewControllerActivityDelegateTest {
     @Test
     public void testOnResumeNoFocus() {
         performResume(false);
+        controllerDelegate.onPause();
     }
 
     @Test
     public void testOnResumeHasFocus() {
         performResume(true);
+        controllerDelegate.onPause();
     }
 
     @Test
@@ -191,10 +226,16 @@ public class ViewControllerActivityDelegateTest {
     }
 
     @Test
-    public void testOnResumeDestroyed() {
+    public void testOnResumeFinished() {
         controllerDelegate.finish();
         controllerDelegate.onResume();
+        ensureNoMoreInteractions();
+    }
 
+    @Test
+    public void testOnResumeDestroyed() {
+        performDestroy();
+        controllerDelegate.onResume();
         ensureNoMoreInteractions();
     }
 
@@ -205,12 +246,14 @@ public class ViewControllerActivityDelegateTest {
 
     @Test
     public void testOnPauseNoFocus() {
-        performPauseAfterResume(false);
+        performAndVerifyPauseAfterResume(false);
+        controllerDelegate.onResume();
     }
 
     @Test
     public void testOnPauseHasFocus() {
-        performPauseAfterResume(true);
+        performAndVerifyPauseAfterResume(true);
+        controllerDelegate.onResume();
     }
 
     @Test
@@ -254,10 +297,25 @@ public class ViewControllerActivityDelegateTest {
     }
 
     @Test
-    public void testOnPauseDestroyed() {
+    public void testOnPauseFinished() {
         controllerDelegate.finish();
-        controllerDelegate.onPause();
+        Mockito.reset(controller);
 
+        controllerDelegate.onPause();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnPauseInstanceStateSaved() {
+        performSaveInstanceState();
+        controllerDelegate.onPause();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnPauseDestroyed() {
+        performDestroy();
+        controllerDelegate.onPause();
         ensureNoMoreInteractions();
     }
 
@@ -269,20 +327,35 @@ public class ViewControllerActivityDelegateTest {
     @Test
     public void testOnStop() {
         performStart();
-        performStop();
+        performAndVerifyStop();
     }
 
     @Test
     public void testOnStopAfterPause() {
-        performPauseAfterResume(false);
-        performStop();
+        performAndVerifyPauseAfterResume(false);
+        performAndVerifyStop();
+    }
+
+    @Test
+    public void testOnStopFinished() {
+        controllerDelegate.finish();
+        Mockito.reset(controller);
+
+        controllerDelegate.onPause();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnStopInstanceStateSaved() {
+        performSaveInstanceState();
+        controllerDelegate.onStop();
+        ensureNoMoreInteractions();
     }
 
     @Test
     public void testOnStopDestroyed() {
-        controllerDelegate.finish();
+        performDestroy();
         controllerDelegate.onStop();
-
         ensureNoMoreInteractions();
     }
 
@@ -294,21 +367,36 @@ public class ViewControllerActivityDelegateTest {
     @Test
     public void testOnDestroy() {
         performCreate();
-        performDestroy();
+        controllerDelegate.onDestroy();
+        verifyDestroy();
     }
 
     @Test
     public void testOnDestroyAfterStop() {
         performStart();
-        performStop();
-        performDestroy();
+        performAndVerifyStop();
+        controllerDelegate.onDestroy();
+        verifyDestroy();
+    }
+
+    @Test
+    public void testOnDestroyFinished() {
+        controllerDelegate.finish();
+        controllerDelegate.onDestroy();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnDestroyInstanceStateSaved() {
+        performSaveInstanceState();
+        controllerDelegate.onDestroy();
+        ensureNoMoreInteractions();
     }
 
     @Test
     public void testOnDestroyDestroyed() {
-        controllerDelegate.finish();
+        performDestroy();
         controllerDelegate.onDestroy();
-
         ensureNoMoreInteractions();
     }
 
@@ -319,7 +407,7 @@ public class ViewControllerActivityDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateResumed() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
         performResume(false);
 
         controllerDelegate.onSaveInstanceState(outState);
@@ -333,7 +421,7 @@ public class ViewControllerActivityDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateStarted() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
         performStart();
 
         controllerDelegate.onSaveInstanceState(outState);
@@ -346,7 +434,7 @@ public class ViewControllerActivityDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateCreated() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
         performCreate();
 
         controllerDelegate.onSaveInstanceState(outState);
@@ -357,7 +445,7 @@ public class ViewControllerActivityDelegateTest {
 
     @Test
     public void testOnSaveInstanceStateInitialized() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
 
         controllerDelegate.onSaveInstanceState(outState);
 
@@ -366,10 +454,34 @@ public class ViewControllerActivityDelegateTest {
     }
 
     @Test
-    public void testOnSaveInstanceStateDestroyed() {
-        Bundle outState = createMockBundle(NAME_OUT_STATE);
+    public void testOnSaveInstanceStateFinished() {
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
 
         controllerDelegate.finish();
+        controllerDelegate.onSaveInstanceState(outState);
+
+        Mockito.verify(controller).onControllerSaveInstanceState(outState);
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnSaveInstanceStateInstanceStateSaved() {
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
+
+        controllerDelegate.onSaveInstanceState(outState);
+        Mockito.reset(controller);
+
+        controllerDelegate.onSaveInstanceState(outState);
+        Mockito.verify(controller).onControllerSaveInstanceState(outState);
+
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnSaveInstanceStateDestroyed() {
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
+
+        performDestroy();
         controllerDelegate.onSaveInstanceState(outState);
 
         ensureNoMoreInteractions();
@@ -457,10 +569,16 @@ public class ViewControllerActivityDelegateTest {
     }
 
     @Test
-    public void testFinishDestroyed() {
+    public void testFinishFinished() {
         controllerDelegate.finish();
         controllerDelegate.finish();
+        ensureNoMoreInteractions();
+    }
 
+    @Test
+    public void testFinishDestroyed() {
+        performDestroy();
+        controllerDelegate.finish();
         ensureNoMoreInteractions();
     }
 
@@ -491,18 +609,28 @@ public class ViewControllerActivityDelegateTest {
     }
 
     private void performDestroy() {
+        controllerDelegate.finish();
         controllerDelegate.onDestroy();
+    }
+
+    private void performSaveInstanceState() {
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
+        controllerDelegate.onSaveInstanceState(outState);
+        Mockito.verify(controller).onControllerSaveInstanceState(outState);
+    }
+
+    private void verifyDestroy() {
         controllerDelegate.onCreate(null);
         ensureNoMoreInteractions();
     }
 
-    private void performStop() {
+    private void performAndVerifyStop() {
         controllerDelegate.onStop();
-        Mockito.verify(controller).onControllerStop();
+        verifyStop();
         ensureNoMoreInteractions();
     }
 
-    private void performPauseAfterResume(boolean hasFocus) {
+    private void performAndVerifyPauseAfterResume(boolean hasFocus) {
         performResume(hasFocus);
 
         controllerDelegate.onPause();
@@ -553,9 +681,9 @@ public class ViewControllerActivityDelegateTest {
     }
 
     private void performCreate(boolean hasExtras, boolean hasSavedInstanceState, boolean hasContentLayout) {
-        Bundle extras = hasExtras ? createMockBundle(NAME_EXTRAS) : null;
-        Intent intent = createMockIntent(extras);
-        Bundle savedInstanceState = hasSavedInstanceState ? createMockBundle(NAME_SAVED_INSTANCE_STATE) : null;
+        Bundle extras = hasExtras ? TestUtils.createMockBundle(TestUtils.BUNDLE_EXTRAS) : null;
+        Intent intent = TestUtils.createMockIntent(extras);
+        Bundle savedInstanceState = hasSavedInstanceState ? TestUtils.createMockBundle(TestUtils.BUNDLE_SAVED_INSTANCE_STATE) : null;
 
         Mockito.when(activity.getIntent()).thenReturn(intent);
         Mockito.when(controller.onControllerGetContentLayoutId()).thenReturn(hasContentLayout ? 1 : 0);
@@ -581,17 +709,5 @@ public class ViewControllerActivityDelegateTest {
 
     private void ensureNoMoreInteractions() {
         Mockito.verifyNoMoreInteractions(controller);
-    }
-
-    private Intent createMockIntent(@Nullable Bundle extras) {
-        Intent intent = Mockito.mock(Intent.class);
-        Mockito.when(intent.getExtras()).thenReturn(extras);
-        return intent;
-    }
-
-    private Bundle createMockBundle(@NonNull String name) {
-        Bundle bundle = Mockito.mock(Bundle.class);
-        Mockito.when(bundle.toString()).thenReturn("Bundle#" + name);
-        return bundle;
     }
 }

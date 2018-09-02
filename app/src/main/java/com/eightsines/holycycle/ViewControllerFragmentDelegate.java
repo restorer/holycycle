@@ -12,12 +12,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import com.eightsines.holycycle.app.ViewControllerFragment;
+import com.eightsines.holycycle.app.ViewControllerPlatformFragment;
 
 /**
  * Helper class which transform Android-lifecycle to ViewController-lifecycle.
- * <p>If you can't use {@link FragmentViewController} or {@link PlatformFragmentViewController},
+ * <p>If you can't use {@link ViewControllerFragment} or {@link ViewControllerPlatformFragment},
  * (eg. you can't change base fragment for some reason), use this class.
- * See {@link FragmentViewController} for example of usage - it is pretty simple.</p>
+ * See {@link ViewControllerFragment} for example of usage - it is pretty simple.</p>
  */
 @SuppressLint("NewApi")
 public class ViewControllerFragmentDelegate {
@@ -58,7 +60,7 @@ public class ViewControllerFragmentDelegate {
      * View controller delegate constructor. Mostly you want use it like
      * {@code new ViewControllerFragmentDelegate(this)}, however it is possible to separate
      * host fragment from the view controller.
-     * <p>See the {@link FragmentViewController} for an example of use.</p>
+     * <p>See the {@link ViewControllerFragment} for an example of use.</p>
      *
      * @param controller Managed view controller.
      */

@@ -6,7 +6,8 @@
     <uses-sdk tools:overrideLibrary="android.support.test.uiautomator.v18" />
 
     <application>
-        <activity android:name=".ActivityViewControllerStub" />
-        <activity android:name=".AnotherActivityStub" />
+        <activity android:name=".app.TestLauncherActivity" />
+        <activity android:name=".app.ViewControllerActivityStub" />
+        <activity android:name=".app.TestCoverActivity" />
     </application>
 </manifest>

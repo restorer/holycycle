@@ -1,12 +1,14 @@
-package com.eightsines.holycycle;
+package com.eightsines.holycycle.app;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
+import com.eightsines.holycycle.ViewController;
+import com.eightsines.holycycle.ViewControllerActivityDelegate;
 
-public abstract class FragmentActivityViewController extends FragmentActivity implements ViewController {
+public abstract class ViewControllerFragmentActivity extends FragmentActivity implements ViewController {
     private ViewControllerActivityDelegate controllerDelegate;
 
     @Override

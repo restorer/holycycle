@@ -1,5 +1,7 @@
 package com.eightsines.holycycle;
 
+import android.app.Instrumentation;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.support.test.InstrumentationRegistry;
@@ -12,7 +14,10 @@ import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.test.uiautomator.UiDevice;
-import java.util.concurrent.CountDownLatch;
+import com.eightsines.holycycle.app.TestCoverActivity;
+import com.eightsines.holycycle.app.TestLauncherActivity;
+import com.eightsines.holycycle.app.ViewControllerActivityStub;
+import com.eightsines.holycycle.util.TestUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,18 +27,27 @@ import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class ActivityViewControllerInstrumentedTest {
+public class ViewControllerActivityInstrumentedTest {
     @Rule
-    public ActivityTestRule<ActivityViewControllerStub> activityRule = new ActivityTestRule<>(ActivityViewControllerStub.class);
+    public ActivityTestRule<TestLauncherActivity> launcherActivityRule = new ActivityTestRule<>(TestLauncherActivity.class);
 
+    @Rule
+    public ActivityTestRule<ViewControllerActivityStub> activityRule = new ActivityTestRule<>(ViewControllerActivityStub.class,
+            false,
+            false);
+
+    private Instrumentation instrumentation;
+    private Context context;
     private UiDevice uiDevice;
-    private ActivityViewControllerStub activity;
+    private ViewControllerActivityStub activity;
 
     @Before
     public void setUp() {
+        instrumentation = InstrumentationRegistry.getInstrumentation();
+        context = instrumentation.getTargetContext();
+        uiDevice = UiDevice.getInstance(instrumentation);
+
         Intents.init();
-        uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-        activity = activityRule.getActivity();
     }
 
     @After
@@ -43,93 +57,107 @@ public class ActivityViewControllerInstrumentedTest {
 
     @Test
     public void testLaunch() {
+        launchActivity(false);
+
         Assert.assertEquals("create:N;getContentLayoutId;contentViewCreated;start;resume;focus",
                 activity.getSignature());
     }
 
     @Test
     public void testBlur() {
-        activity.resetSignature();
+        launchActivity();
+
         Espresso.onView(ViewMatchers.withId(R.id.show_progress)).perform(ViewActions.click());
+        waitALittle();
+
         Assert.assertEquals("blur", activity.getSignature());
     }
 
     @Test
     public void testFocus() {
+        launchActivity();
+
         Espresso.onView(ViewMatchers.withId(R.id.show_progress)).perform(ViewActions.click());
         waitALittle();
 
         activity.resetSignature();
+
         Espresso.pressBack();
+        waitALittle();
+
         Assert.assertEquals("focus", activity.getSignature());
     }
 
     @Test
     public void testStartAnotherActivity() {
-        activity.resetSignature();
+        launchActivity();
+
         Espresso.onView(ViewMatchers.withId(R.id.start_activity)).perform(ViewActions.click());
-        Assert.assertEquals("blur;pause;persistUserData", activity.getSignature());
+        waitALittle();
 
-        Intents.intended(IntentMatchers.hasComponent(AnotherActivityStub.class.getName()));
+        TestUtils.assertEqualsAny(new String[] {
+                "blur;pause;persistUserData",
+                "blur;pause;persistUserData;stop;saveInstanceState" }, activity.getSignature());
 
+        Intents.intended(IntentMatchers.hasComponent(TestCoverActivity.class.getName()));
         activity.resetSignature();
+
         Espresso.pressBack();
         waitALittle();
 
-        if (!"resume;focus".equals(activity.getSignature())) {
-            Assert.assertEquals("stop;saveInstanceState:Y;start;resume;focus", activity.getSignature());
-        }
+        TestUtils.assertEqualsAny(new String[] {
+                "resume;focus",
+                "stop;saveInstanceState;start;resume;focus" }, activity.getSignature());
     }
 
     @Test
     public void testPressHome() {
-        waitALittle();
-        activity.resetSignature();
+        launchActivity();
 
         uiDevice.pressHome();
         waitALittle();
 
-        Assert.assertEquals("blur;pause;persistUserData;stop;saveInstanceState:Y", activity.getSignature());
+        Assert.assertEquals("blur;pause;persistUserData;stop;saveInstanceState", activity.getSignature());
     }
 
     @Test
     public void testRotateDevice() {
-        waitALittle();
-        activity.resetSignature();
-
+        launchActivity();
         changeActivityOrientation();
-        waitALittle();
-
-        Assert.assertEquals("blur;pause;persistUserData;stop;saveInstanceState:Y", activity.getSignature());
+        Assert.assertEquals("blur;pause;persistUserData;stop;saveInstanceState", activity.getSignature());
     }
 
     @Test
     public void testFinish() {
-        activity.resetSignature();
+        launchActivity();
+
         activityRule.finishActivity();
+        waitALittle();
+
         Assert.assertEquals("blur;pause;persistUserData;stop", activity.getSignature());
     }
 
+    private void launchActivity() {
+        launchActivity(true);
+    }
+
+    private void launchActivity(boolean shouldResetSignature) {
+        activity = activityRule.launchActivity(null);
+
+        if (shouldResetSignature) {
+            activity.resetSignature();
+        }
+    }
+
     private void changeActivityOrientation() {
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
-        int orientation = InstrumentationRegistry.getTargetContext().getResources().getConfiguration().orientation;
+        int orientation = context.getResources().getConfiguration().orientation;
 
         activity.setRequestedOrientation((orientation == Configuration.ORIENTATION_PORTRAIT)
                 ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                 : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        InstrumentationRegistry.getInstrumentation().waitForIdle(new Runnable() {
-            @Override
-            public void run() {
-                countDownLatch.countDown();
-            }
-        });
-
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Screen rotation failed", e);
-        }
+        instrumentation.waitForIdleSync();
+        waitALittle();
     }
 
     private void waitALittle() {

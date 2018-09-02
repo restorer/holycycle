@@ -1,4 +1,4 @@
-package com.eightsines.holycycle;
+package com.eightsines.holycycle.app;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -8,10 +8,11 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import com.eightsines.holycycle.R;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class ActivityViewControllerStub extends ActivityViewController {
+public class ViewControllerActivityStub extends ViewControllerActivity {
     private List<String> callsList = new CopyOnWriteArrayList<>();
     private Button showProgressButton;
     private Button startActivityButton;
@@ -31,8 +32,7 @@ public class ActivityViewControllerStub extends ActivityViewController {
 
     @Override
     public void onControllerRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        //noinspection ConstantConditions
-        callsList.add("restoreInstanceState:" + (savedInstanceState == null ? "N" : "Y"));
+        callsList.add("restoreInstanceState");
     }
 
     @Override
@@ -56,14 +56,14 @@ public class ActivityViewControllerStub extends ActivityViewController {
         showProgressButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ProgressDialog.show(ActivityViewControllerStub.this, "TITLE", "MESSAGE", true, true);
+                ProgressDialog.show(ViewControllerActivityStub.this, "TITLE", "MESSAGE", true, true);
             }
         });
 
         startActivityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(ActivityViewControllerStub.this, AnotherActivityStub.class));
+                startActivity(new Intent(ViewControllerActivityStub.this, TestCoverActivity.class));
             }
         });
     }
@@ -103,7 +103,6 @@ public class ActivityViewControllerStub extends ActivityViewController {
 
     @Override
     public void onControllerSaveInstanceState(@NonNull Bundle outState) {
-        //noinspection ConstantConditions
-        callsList.add("saveInstanceState:" + (outState == null ? "N" : "Y"));
+        callsList.add("saveInstanceState");
     }
 }

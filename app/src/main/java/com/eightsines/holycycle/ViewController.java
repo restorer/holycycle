@@ -5,12 +5,17 @@ import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.View;
+import com.eightsines.holycycle.app.ViewControllerActivity;
+import com.eightsines.holycycle.app.ViewControllerAppCompatActivity;
+import com.eightsines.holycycle.app.ViewControllerFragmentActivity;
+import com.eightsines.holycycle.app.ViewControllerFragment;
+import com.eightsines.holycycle.app.ViewControllerPlatformFragment;
 
 /**
  * A view controller is an object, which manages piece of an application's user interface.
  * This is an abstraction over Activity or Fragment lifecycle, which makes it straightforward and consistent.
- * <p>Most of time you should use {@link ActivityViewController}, {@link FragmentActivityViewController},
- * {@link AppCompatActivityViewController}, {@link FragmentViewController}, or {@link PlatformFragmentViewController}
+ * <p>Most of time you should use {@link ViewControllerActivity}, {@link ViewControllerFragmentActivity},
+ * {@link ViewControllerAppCompatActivity}, {@link ViewControllerFragment}, or {@link ViewControllerPlatformFragment}
  * instead of using this interface directly.</p>
  * <p>The new lifecycle is:</p>
  * <ol>
