@@ -30,9 +30,6 @@ public class ViewControllerActivityDelegate {
     private int state = STATE_INITIALIZED;
     private int contentLayoutResId;
     private boolean hasWindowFocus;
-    private boolean isPerformingPause;
-    private boolean isPerformingSaveInstanceState;
-    private boolean isFinishPending;
 
     /**
      * View controller delegate constructor. Mostly you want use it like
@@ -57,7 +54,6 @@ public class ViewControllerActivityDelegate {
      */
     public void onCreate(@Nullable Bundle savedInstanceState) {
         if (state == STATE_DESTROYED || state == STATE_FINISHED) {
-            // Should not happen.
             return;
         }
 
@@ -98,7 +94,6 @@ public class ViewControllerActivityDelegate {
      */
     public void onRestart() {
         if (state == STATE_DESTROYED || state == STATE_FINISHED) {
-            // Should not happen.
             return;
         }
 
@@ -158,18 +153,18 @@ public class ViewControllerActivityDelegate {
      * Call this method from {@link Activity#onPause()} before {@code super.onPause()}.
      */
     public void onPause() {
-        if (state == STATE_DESTROYED || state == STATE_INSTANCE_STATE_SAVED || state == STATE_FINISHED) {
+        if (state == STATE_DESTROYED || state == STATE_INSTANCE_STATE_SAVED) {
             return;
         }
 
-        if (state != STATE_RESUMED) {
+        if (state != STATE_RESUMED && state != STATE_FINISHED) {
             throw new IllegalStateException(
                     "onPause() was called with an invalid state ("
                             + state
                             + "), perhaps you forgot to call onResume()?");
         }
 
-        isPerformingPause = true;
+        state = STATE_STARTED;
 
         if (hasWindowFocus) {
             controller.onControllerBlur();
@@ -177,25 +172,17 @@ public class ViewControllerActivityDelegate {
 
         controller.onControllerPause();
         controller.onControllerPersistUserData();
-
-        state = STATE_STARTED;
-        isPerformingPause = false;
-
-        if (isFinishPending) {
-            isFinishPending = false;
-            finish();
-        }
     }
 
     /**
      * Call this method from {@link Activity#onStop()} before {@code super.onStop()}.
      */
     public void onStop() {
-        if (state == STATE_DESTROYED || state == STATE_INSTANCE_STATE_SAVED || state == STATE_FINISHED) {
+        if (state == STATE_DESTROYED || state == STATE_INSTANCE_STATE_SAVED) {
             return;
         }
 
-        if (state != STATE_STARTED) {
+        if (state != STATE_STARTED && state != STATE_FINISHED) {
             throw new IllegalStateException(
                     "onStop() was called with an invalid state (" + state + "), perhaps you forgot to call onPause()?");
         }
@@ -232,28 +219,19 @@ public class ViewControllerActivityDelegate {
             return;
         }
 
-        isPerformingSaveInstanceState = true;
+        // Such strange "if" because state can be changed to STATE_FINISHED inside onPause().
+        if (state == STATE_RESUMED || state == STATE_STARTED) {
+            if (state == STATE_RESUMED) {
+                onPause();
+            }
 
-        if (state == STATE_RESUMED) {
-            onPause();
-        }
-
-        if (state == STATE_STARTED) {
             onStop();
         }
 
         controller.onControllerSaveInstanceState(outState);
 
-        if (state != STATE_FINISHED) {
-            state = STATE_INSTANCE_STATE_SAVED;
-        }
-
-        isPerformingSaveInstanceState = false;
-
-        if (isFinishPending) {
-            isFinishPending = false;
-            finish();
-        }
+        // Override possible STATE_FINISHED.
+        state = STATE_INSTANCE_STATE_SAVED;
     }
 
     /**
@@ -282,25 +260,9 @@ public class ViewControllerActivityDelegate {
      * Call this method from {@link Activity#finish()} before {@code super.finish()}.
      */
     public void finish() {
-        // Allow to continue with STATE_INSTANCE_STATE_SAVED.
-        if (state == STATE_DESTROYED || state == STATE_FINISHED) {
-            return;
+        if (state != STATE_DESTROYED && state != STATE_INSTANCE_STATE_SAVED) {
+            state = STATE_FINISHED;
         }
-
-        if (isPerformingPause || isPerformingSaveInstanceState) {
-            isFinishPending = true;
-            return;
-        }
-
-        if (state == STATE_RESUMED) {
-            onPause();
-        }
-
-        if (state == STATE_STARTED) {
-            onStop();
-        }
-
-        state = STATE_FINISHED;
     }
 
     /**

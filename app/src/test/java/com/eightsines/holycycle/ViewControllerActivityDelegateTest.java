@@ -219,9 +219,6 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.onResume();
 
         Mockito.verify(controller).onControllerResume();
-        verifyPause(true);
-        verifyStop();
-
         ensureNoMoreInteractions();
     }
 
@@ -271,8 +268,6 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.onPause();
 
         verifyPause(true);
-        verifyStop();
-
         ensureNoMoreInteractions();
     }
 
@@ -291,18 +286,14 @@ public class ViewControllerActivityDelegateTest {
         controllerDelegate.onPause();
 
         verifyPause(true);
-        verifyStop();
-
         ensureNoMoreInteractions();
     }
 
     @Test
     public void testOnPauseFinished() {
         controllerDelegate.finish();
-        Mockito.reset(controller);
-
         controllerDelegate.onPause();
-        ensureNoMoreInteractions();
+        verifyPause(false);
     }
 
     @Test
@@ -339,10 +330,8 @@ public class ViewControllerActivityDelegateTest {
     @Test
     public void testOnStopFinished() {
         controllerDelegate.finish();
-        Mockito.reset(controller);
-
-        controllerDelegate.onPause();
-        ensureNoMoreInteractions();
+        controllerDelegate.onStop();
+        verifyStop();
     }
 
     @Test
@@ -536,22 +525,14 @@ public class ViewControllerActivityDelegateTest {
     @Test
     public void testFinishResumed() {
         performResume(false);
-
         controllerDelegate.finish();
-
-        verifyPause(false);
-        verifyStop();
-
         ensureNoMoreInteractions();
     }
 
     @Test
     public void testFinishStarted() {
         performStart();
-
         controllerDelegate.finish();
-
-        verifyStop();
         ensureNoMoreInteractions();
     }
 

@@ -6,8 +6,8 @@ import android.support.annotation.Nullable;
 import com.eightsines.holycycle.util.TestActivityStub;
 import com.eightsines.holycycle.util.TestActivityStubDelegate;
 
-public class ViewControllerActivityStub extends ViewControllerActivity implements TestActivityStub {
-    private TestActivityStubDelegate<ViewControllerActivityStub> delegate = new TestActivityStubDelegate<>(this);
+public class ViewControllerFragmentActivityStub extends ViewControllerFragmentActivity implements TestActivityStub {
+    private TestActivityStubDelegate<ViewControllerFragmentActivityStub> delegate = new TestActivityStubDelegate<>(this);
 
     @Override
     public String getCalls() {

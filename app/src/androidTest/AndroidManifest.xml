@@ -8,6 +8,8 @@
     <application>
         <activity android:name=".app.TestLauncherActivity" />
         <activity android:name=".app.ViewControllerActivityStub" />
+        <activity android:name=".app.ViewControllerAppCompatActivityStub" android:theme="@style/Theme.AppCompat" />
+        <activity android:name=".app.ViewControllerFragmentActivityStub" />
         <activity android:name=".app.TestCoverActivity" />
     </application>
 </manifest>
