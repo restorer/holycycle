@@ -3,11 +3,16 @@ package com.eightsines.holycycle.app;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import com.eightsines.holycycle.util.CallRecorder;
 import com.eightsines.holycycle.util.FragmentStubDelegate;
+import com.eightsines.holycycle.util.TestCallRecorder;
 
-public class ViewControllerFragmentStub extends ViewControllerFragment implements CallRecorder {
+public class ViewControllerFragmentStub extends ViewControllerFragment implements TestCallRecorder {
     private FragmentStubDelegate delegate = new FragmentStubDelegate(this);
+
+    @NonNull
+    public static ViewControllerFragmentStub newInstance() {
+        return new ViewControllerFragmentStub();
+    }
 
     @Override
     public String getCalls() {

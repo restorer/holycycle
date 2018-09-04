@@ -2,9 +2,11 @@ package com.eightsines.holycycle.util;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.support.annotation.IdRes;
+import android.support.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.Espresso;
 import android.support.test.espresso.action.ViewActions;
@@ -63,8 +65,15 @@ public final class TestUtils {
     }
 
     public static <T extends Activity> T launchActivity(ActivityTestRule<T> activityRule) {
-        // Seems to work without waitForIdleUiSync().
-        return activityRule.launchActivity(null);
+        return launchActivity(activityRule, null);
+    }
+
+    public static <T extends Activity> T launchActivity(ActivityTestRule<T> activityRule,
+            @Nullable Intent startIntent) {
+
+        T result = activityRule.launchActivity(startIntent);
+        TestUtils.waitForIdleUiSync(); // Additional wait for the great justice.
+        return result;
     }
 
     public static <T extends Activity> void finishActivity(ActivityTestRule<T> activityRule) {
@@ -76,6 +85,7 @@ public final class TestUtils {
         changeActivityOrientation(activityRule.getActivity());
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static void changeActivityOrientation(Activity activity) {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         int orientation = instrumentation.getTargetContext().getResources().getConfiguration().orientation;
@@ -84,7 +94,7 @@ public final class TestUtils {
                 ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                 : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        instrumentation.waitForIdleSync();
+        TestUtils.waitForIdleUiSync();
     }
 
     @SuppressWarnings("WeakerAccess")

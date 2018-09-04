@@ -12,7 +12,7 @@ import com.eightsines.holycycle.R;
 import com.eightsines.holycycle.ViewController;
 import com.eightsines.holycycle.app.TestCoverActivity;
 
-public class FragmentStubDelegate extends SimpleCallRecorder implements ViewController {
+public class FragmentStubDelegate extends TestSimpleCallRecorder implements ViewController {
     private ViewController owner;
     private android.support.v4.app.Fragment ownerSupportFragment;
     private android.app.Fragment ownerPlatformFragment;
@@ -45,7 +45,7 @@ public class FragmentStubDelegate extends SimpleCallRecorder implements ViewCont
     @Override
     public int onControllerGetContentLayoutId() {
         recordCall("getContentLayoutId");
-        return R.layout.test_stub;
+        return R.layout.test_ui;
     }
 
     @Override

@@ -12,7 +12,7 @@ import com.eightsines.holycycle.R;
 import com.eightsines.holycycle.ViewController;
 import com.eightsines.holycycle.app.TestCoverActivity;
 
-public class ActivityStubDelegate<VC extends Activity & ViewController> extends SimpleCallRecorder
+public class ActivityStubDelegate<VC extends Activity & ViewController> extends TestSimpleCallRecorder
         implements ViewController {
 
     private VC owner;
@@ -37,7 +37,7 @@ public class ActivityStubDelegate<VC extends Activity & ViewController> extends 
     @Override
     public int onControllerGetContentLayoutId() {
         recordCall("getContentLayoutId");
-        return R.layout.test_stub;
+        return R.layout.test_ui;
     }
 
     @Override

@@ -26,14 +26,14 @@ android {
 
 dependencies {
     implementation fileTree(include: [ '*.jar' ], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation "com.android.support:appcompat-v7:${ver_support}"
 
-    testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:2.21.0'
+    testImplementation "junit:junit:${ver_junit}"
+    testImplementation "org.mockito:mockito-core:${ver_mockito}"
 
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-intents:3.0.2'
-    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
+    androidTestImplementation "com.android.support.test:runner:${ver_test}"
+    androidTestImplementation "com.android.support.test:rules:${ver_test}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:${ver_espresso}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-intents:${ver_espresso}"
+    androidTestImplementation "com.android.support.test.uiautomator:uiautomator-v18:${ver_uiautomator}"
 }

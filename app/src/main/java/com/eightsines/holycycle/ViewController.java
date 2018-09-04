@@ -88,7 +88,7 @@ public interface ViewController {
      * <p>Good place to register {@link android.view.View} listeners (eg. click listeners), subscribe
      * to observables or event bus, register broadcast receivers, and reflect last application state into UI.</p>
      * <p><em>NB. Internally this method is called directly from onStart() in Activity or Fragment,
-     * so due to nature of Android, calling this method does not mean that this view controller is shown
+     * so due to nature of Android, calling this method does NOT mean that this view controller is shown
      * to a user at first time (for example, Activity of Fragment can be destroyed and created
      * again after screen rotation).</em></p>
      */

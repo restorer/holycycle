@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @SuppressWarnings("AbstractClassWithoutAbstractMethods")
-public abstract class SimpleCallRecorder implements CallRecorder {
+public abstract class TestSimpleCallRecorder implements TestCallRecorder {
     private List<String> calls = new CopyOnWriteArrayList<>();
 
     @Override
