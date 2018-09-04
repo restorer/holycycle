@@ -677,7 +677,7 @@ public class ViewControllerFragmentDelegateTest {
                 }
 
                 if (sdkInt >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    Mockito.doAnswer(new Answer() {
+                    Mockito.doAnswer(new Answer<Void>() {
                         @Override
                         public Void answer(InvocationOnMock invocation) {
                             lastWindowFocusChangeListener = invocation.getArgument(0);

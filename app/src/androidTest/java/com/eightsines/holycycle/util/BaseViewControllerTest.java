@@ -95,6 +95,10 @@ public abstract class BaseViewControllerTest<T extends Activity> {
     public void testRotateDevice() {
         launchActivity();
         TestUtils.changeActivityOrientation(getActivityRule());
+
+        // Additional wait for the great justice.
+        TestUtils.waitForIdleUiSync();
+
         Assert.assertEquals("blur;pause;persistUserData;stop;saveInstanceState", callRecorder.getCalls());
     }
 

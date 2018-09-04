@@ -82,7 +82,7 @@ public class ViewControllerActivityDelegateTest {
 
         Mockito.when(activity.getIntent()).thenReturn(intent);
 
-        Mockito.doAnswer(new Answer() {
+        Mockito.doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocation) {
                 controllerDelegate.finish();
@@ -107,7 +107,7 @@ public class ViewControllerActivityDelegateTest {
 
         Mockito.when(activity.getIntent()).thenReturn(intent);
 
-        Mockito.doAnswer(new Answer() {
+        Mockito.doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocation) {
                 controllerDelegate.finish();
@@ -207,7 +207,7 @@ public class ViewControllerActivityDelegateTest {
     public void testOnResumeFinishInResume() {
         performStart();
 
-        Mockito.doAnswer(new Answer() {
+        Mockito.doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocation) {
                 controllerDelegate.finish();
@@ -257,7 +257,7 @@ public class ViewControllerActivityDelegateTest {
     public void testOnPauseFinishInPause() {
         performResume(true);
 
-        Mockito.doAnswer(new Answer() {
+        Mockito.doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocation) {
                 controllerDelegate.finish();
@@ -275,7 +275,7 @@ public class ViewControllerActivityDelegateTest {
     public void testOnPauseFinishInBlur() {
         performResume(true);
 
-        Mockito.doAnswer(new Answer() {
+        Mockito.doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocation) {
                 controllerDelegate.finish();

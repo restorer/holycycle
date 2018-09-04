@@ -72,13 +72,14 @@ public final class TestUtils {
             @Nullable Intent startIntent) {
 
         T result = activityRule.launchActivity(startIntent);
-        TestUtils.waitForIdleUiSync(); // Additional wait for the great justice.
+        waitForIdleUiSync(); // Additional wait for the great justice.
         return result;
     }
 
     public static <T extends Activity> void finishActivity(ActivityTestRule<T> activityRule) {
         activityRule.finishActivity();
         waitForIdleUiSync();
+        waitForIdleUiSync(); // Additional wait for the great justice.
     }
 
     public static <T extends Activity> void changeActivityOrientation(ActivityTestRule<T> activityRule) {
@@ -94,7 +95,7 @@ public final class TestUtils {
                 ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                 : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        TestUtils.waitForIdleUiSync();
+        waitForIdleUiSync();
     }
 
     @SuppressWarnings("WeakerAccess")

@@ -428,9 +428,9 @@ public class ViewControllerFragmentDelegate {
      * @param id Pass {@code id} parameter here.
      * @return A view with given ID if found, or {@code null} otherwise.
      */
+    @SuppressWarnings("unchecked")
     @Nullable
     public <T extends View> T findViewById(int id) {
-        //noinspection unchecked
         return (contentView == null ? null : (T)contentView.findViewById(id));
     }
 }

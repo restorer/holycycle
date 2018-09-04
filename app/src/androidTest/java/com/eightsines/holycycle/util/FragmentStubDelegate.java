@@ -1,6 +1,5 @@
 package com.eightsines.holycycle.util;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -61,9 +60,10 @@ public class FragmentStubDelegate extends TestSimpleCallRecorder implements View
         recordCall("start");
 
         showProgressButton.setOnClickListener(new View.OnClickListener() {
+            @SuppressWarnings("deprecation")
             @Override
             public void onClick(View v) {
-                ProgressDialog.show(getContext(), "PROGRESS", "PROGRESS", true, true);
+                android.app.ProgressDialog.show(getContext(), "PROGRESS", "PROGRESS", true, true);
             }
         });
 

@@ -21,6 +21,11 @@ allprojects {
         google()
         jcenter()
     }
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << '-Xlint:all'
+        options.compilerArgs << '-Xlint:-classfile'
+    }
 }
 
 task clean(type: Delete) {
