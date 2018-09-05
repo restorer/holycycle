@@ -261,6 +261,8 @@ public class ViewControllerFragmentDelegate {
             return;
         }
 
+        // TODO: potentially STATE_INSTANCE_STATE_SAVED can be here
+
         if (state != STATE_STARTED) {
             throw new IllegalStateException(
                     "onResume() was called with an invalid state ("

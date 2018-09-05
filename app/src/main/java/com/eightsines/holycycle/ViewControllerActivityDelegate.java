@@ -115,6 +115,8 @@ public class ViewControllerActivityDelegate {
             return;
         }
 
+        // TODO: potentially STATE_INSTANCE_STATE_SAVED can be here
+
         if (state != STATE_CREATED) {
             throw new IllegalStateException(
                     "onStart() was called with an invalid state ("
@@ -133,6 +135,8 @@ public class ViewControllerActivityDelegate {
         if (state == STATE_DESTROYED || isFinished) {
             return;
         }
+
+        // TODO: potentially STATE_INSTANCE_STATE_SAVED can be here
 
         if (state != STATE_STARTED) {
             throw new IllegalStateException(
