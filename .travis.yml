@@ -7,8 +7,8 @@ android:
         - build-tools-27.0.3
         # - android-22
         - android-27
-        # - extra-google-m2repository
-        # - extra-android-m2repository
+        - extra-google-m2repository
+        - extra-android-m2repository
         # - sys-img-armeabi-v7a-android-22
 
 # before_script:
