@@ -31,7 +31,7 @@ public class ViewControllerPlatformFragment extends Fragment implements ViewCont
         controllerDelegate.onAttach();
     }
 
-    // For older APIs
+    @SuppressWarnings("deprecation")
     @Override
     public void onAttach(@NonNull Activity activity) {
         super.onAttach(activity);
