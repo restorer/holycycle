@@ -11,6 +11,9 @@ import android.view.ViewGroup;
 import com.eightsines.holycycle.ViewController;
 import com.eightsines.holycycle.ViewControllerFragmentDelegate;
 
+/**
+ * This class should be used instead of {@link android.support.v4.app.Fragment} (android.support.v4.app.Fragment).
+ */
 public abstract class ViewControllerFragment extends Fragment implements ViewController {
     private ViewControllerFragmentDelegate controllerDelegate;
 
@@ -20,7 +23,7 @@ public abstract class ViewControllerFragment extends Fragment implements ViewCon
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         controllerDelegate.onAttach();
     }

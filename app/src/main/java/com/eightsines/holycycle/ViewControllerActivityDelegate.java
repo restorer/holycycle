@@ -41,7 +41,7 @@ public class ViewControllerActivityDelegate {
      * @param controller Managed view controller.
      */
     @SuppressWarnings("WeakerAccess")
-    public ViewControllerActivityDelegate(Activity owner, ViewController controller) {
+    public ViewControllerActivityDelegate(@NonNull Activity owner, @NonNull ViewController controller) {
         this.owner = owner;
         this.controller = controller;
     }
@@ -115,8 +115,6 @@ public class ViewControllerActivityDelegate {
             return;
         }
 
-        // TODO: potentially STATE_INSTANCE_STATE_SAVED can be here
-
         if (state != STATE_CREATED) {
             throw new IllegalStateException(
                     "onStart() was called with an invalid state ("
@@ -136,9 +134,10 @@ public class ViewControllerActivityDelegate {
             return;
         }
 
-        // TODO: potentially STATE_INSTANCE_STATE_SAVED can be here
-
-        if (state != STATE_STARTED) {
+        // STATE_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
+        if (state == STATE_INSTANCE_STATE_SAVED) {
+            controller.onControllerStart();
+        } else if (state != STATE_STARTED) {
             throw new IllegalStateException(
                     "onResume() was called with an invalid state ("
                             + state

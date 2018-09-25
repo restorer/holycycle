@@ -38,9 +38,15 @@ public class ViewControllerFragmentDelegateTest {
         ensureNoMoreInteractions();
     }
 
+    @Test
+    public void testOnAttachTwice() {
+        performAndVerifyAttach();
+        performAndVerifyAttach();
+    }
+
     @Test(expected = IllegalStateException.class)
     public void testOnAttachInvalidState() {
-        performAndVerifyAttach();
+        performAndVerifyCreate();
         controllerDelegate.onAttach();
     }
 
@@ -206,6 +212,25 @@ public class ViewControllerFragmentDelegateTest {
     public void testOnResumeDestroyed() {
         performAndVerifyDestroyAfterCreate();
         controllerDelegate.onResume();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
+    public void testOnResumeInstanceStateSaved() {
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
+        performResume(false);
+
+        controllerDelegate.onSaveInstanceState(outState);
+
+        verifyPause(false);
+        verifyStop(false);
+        Mockito.verify(controller).onControllerSaveInstanceState(outState);
+        ensureNoMoreInteractions();
+
+        controllerDelegate.onResume();
+
+        Mockito.verify(controller).onControllerStart();
+        Mockito.verify(controller).onControllerResume();
         ensureNoMoreInteractions();
     }
 

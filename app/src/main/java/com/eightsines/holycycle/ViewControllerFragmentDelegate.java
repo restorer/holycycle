@@ -66,7 +66,7 @@ public class ViewControllerFragmentDelegate {
      * @param controller Managed view controller.
      */
     @SuppressWarnings("WeakerAccess")
-    public ViewControllerFragmentDelegate(ViewController controller) {
+    public ViewControllerFragmentDelegate(@NonNull ViewController controller) {
         this.controller = controller;
     }
 
@@ -75,7 +75,8 @@ public class ViewControllerFragmentDelegate {
      * after {@code super.onAttach(context)}.
      */
     public void onAttach() {
-        if (state == STATE_DESTROYED) {
+        // STATE_ATTACHED - This method may be called twice for platform fragments on newer APIs.
+        if (state == STATE_DESTROYED || state == STATE_ATTACHED) {
             return;
         }
 
@@ -126,7 +127,7 @@ public class ViewControllerFragmentDelegate {
      * @return Return the View for the fragment's UI, or null.
      */
     @Nullable
-    public View onCreateView(LayoutInflater inflater,
+    public View onCreateView(@NonNull LayoutInflater inflater,
             @Nullable ViewGroup container) {
 
         return onCreateView(inflater, container, false);
@@ -145,7 +146,7 @@ public class ViewControllerFragmentDelegate {
      */
     @SuppressLint("ObsoleteSdkInt")
     @Nullable
-    public View onCreateView(LayoutInflater inflater,
+    public View onCreateView(@NonNull LayoutInflater inflater,
             @Nullable ViewGroup container,
             boolean isPlatformFragment) {
 
@@ -261,9 +262,10 @@ public class ViewControllerFragmentDelegate {
             return;
         }
 
-        // TODO: potentially STATE_INSTANCE_STATE_SAVED can be here
-
-        if (state != STATE_STARTED) {
+        // STATE_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
+        if (state == STATE_INSTANCE_STATE_SAVED) {
+            controller.onControllerStart();
+        } else if (state != STATE_STARTED) {
             throw new IllegalStateException(
                     "onResume() was called with an invalid state ("
                             + state
@@ -420,6 +422,7 @@ public class ViewControllerFragmentDelegate {
      *
      * @return The content view or {@code null}.
      */
+    @Nullable
     public View getView() {
         return contentView;
     }

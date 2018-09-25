@@ -8,6 +8,9 @@ import android.view.View;
 import com.eightsines.holycycle.ViewController;
 import com.eightsines.holycycle.ViewControllerActivityDelegate;
 
+/**
+ * This class should be used instead of {@link android.app.Activity} (android.app.Activity).
+ */
 public abstract class ViewControllerActivity extends Activity implements ViewController {
     private ViewControllerActivityDelegate controllerDelegate;
 
@@ -56,7 +59,7 @@ public abstract class ViewControllerActivity extends Activity implements ViewCon
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         controllerDelegate.onSaveInstanceState(outState);
     }

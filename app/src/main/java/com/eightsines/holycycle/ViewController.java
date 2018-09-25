@@ -7,8 +7,8 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import com.eightsines.holycycle.app.ViewControllerActivity;
 import com.eightsines.holycycle.app.ViewControllerAppCompatActivity;
-import com.eightsines.holycycle.app.ViewControllerFragmentActivity;
 import com.eightsines.holycycle.app.ViewControllerFragment;
+import com.eightsines.holycycle.app.ViewControllerFragmentActivity;
 import com.eightsines.holycycle.app.ViewControllerPlatformFragment;
 
 /**

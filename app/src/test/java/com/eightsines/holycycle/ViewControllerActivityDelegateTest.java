@@ -230,6 +230,25 @@ public class ViewControllerActivityDelegateTest {
     }
 
     @Test
+    public void testOnResumeInstanceStateSaved() {
+        Bundle outState = TestUtils.createMockBundle(TestUtils.BUNDLE_OUT_STATE);
+        performResume(false);
+
+        controllerDelegate.onSaveInstanceState(outState);
+
+        verifyPause(false);
+        verifyStop();
+        Mockito.verify(controller).onControllerSaveInstanceState(outState);
+        ensureNoMoreInteractions();
+
+        controllerDelegate.onResume();
+
+        Mockito.verify(controller).onControllerStart();
+        Mockito.verify(controller).onControllerResume();
+        ensureNoMoreInteractions();
+    }
+
+    @Test
     public void testOnResumeDestroyed() {
         performDestroy();
         controllerDelegate.onResume();

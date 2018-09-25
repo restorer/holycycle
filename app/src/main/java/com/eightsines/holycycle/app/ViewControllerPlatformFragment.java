@@ -1,5 +1,6 @@
 package com.eightsines.holycycle.app;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Build;
@@ -13,6 +14,9 @@ import android.view.ViewGroup;
 import com.eightsines.holycycle.ViewController;
 import com.eightsines.holycycle.ViewControllerFragmentDelegate;
 
+/**
+ * This class should be used instead of {@link android.app.Fragment} (android.app.Fragment, non-support fragment).
+ */
 public class ViewControllerPlatformFragment extends Fragment implements ViewController {
     private ViewControllerFragmentDelegate controllerDelegate;
 
@@ -22,8 +26,15 @@ public class ViewControllerPlatformFragment extends Fragment implements ViewCont
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+        controllerDelegate.onAttach();
+    }
+
+    // For older APIs
+    @Override
+    public void onAttach(@NonNull Activity activity) {
+        super.onAttach(activity);
         controllerDelegate.onAttach();
     }
 

@@ -129,7 +129,8 @@ public class FragmentStubDelegate extends TestSimpleCallRecorder implements View
         if (ownerSupportFragment != null) {
             return ownerSupportFragment.getContext();
         } else {
-            return ownerPlatformFragment.getContext();
+            // Use getActivity() instead of getContext() to support older APIs.
+            return ownerPlatformFragment.getActivity();
         }
     }
 
