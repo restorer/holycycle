@@ -21,7 +21,7 @@ allprojects {
 
 ```
 dependencies {
-	implementation 'com.github.restorer:holycycle:v0.1.0'
+    implementation 'com.github.restorer:holycycle:v0.1.0'
 }
 ```
 
