@@ -16,9 +16,8 @@ public interface ViewControllerLifecycle extends ViewControllerLifecycleTracker 
      * The view controller goes into the started state immediately before
      * {@link ViewControllerLifecycleObserver#onControllerStart()} and exits right before
      * {@link ViewControllerLifecycleObserver#onControllerStop()}.
-     * <p><em>Note: In contrast, android.arch.lifecycle.Lifecycle goes into the
-     * {@link android.arch.lifecycle.Lifecycle.State#STARTED} state <strong>after</strong>
-     * {@link Activity#onStart()}</em></p>
+     * <p><em>Note: In contrast, android architecture lifecycle goes into the
+     * {@code STARTED} state <strong>after</strong> {@link Activity#onStart()}</em></p>
      */
     int STATE_STARTED = 1;
 
@@ -26,9 +25,8 @@ public interface ViewControllerLifecycle extends ViewControllerLifecycleTracker 
      * The view controller goes into the resumed state immediately before
      * {@link ViewControllerLifecycleObserver#onControllerResume()} and exits right before
      * {@link ViewControllerLifecycleObserver#onControllerPause()}.
-     * <p><em>Note: In contrast, android.arch.lifecycle.Lifecycle goes into the
-     * {@link android.arch.lifecycle.Lifecycle.State#RESUMED} state <strong>after</strong>
-     * {@link Activity#onResume()}</em></p>
+     * <p><em>Note: In contrast, android architecture lifecycle goes into the
+     * {@code RESUMED} state <strong>after</strong> {@link Activity#onResume()}</em></p>
      */
     int STATE_RESUMED = 2;
 

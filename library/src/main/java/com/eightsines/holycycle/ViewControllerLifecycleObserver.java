@@ -5,6 +5,13 @@ import android.os.Bundle;
 /**
  * This interface represents the basic callbacks of the view controller lifecycle, which can be used not only
  * by the view controller itself, but also by third-party classes.
+ * <p>Why this should be used instead of android architecture lifecycle observers? There are two main reasons:</p>
+ * <ol>
+ *     <li>To be in-sync with workaround for {@code onSaveInstanceState()} (main reason).</li>
+ *     <li>To simplify view controller lifecycle observers (in our view android architecture lifecycle is
+ *     slightly overcomplicated for regular applications).</li>
+ * </ol>
+ * <p>Basic lifecycle callbacks include:</p>
  * <ol>
  * <li>{@link #onControllerStart()}</li>
  * <li>{@link #onControllerResume()}</li>
