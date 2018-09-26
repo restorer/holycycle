@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.eightsines.holycycle.ViewController;
 import com.eightsines.holycycle.ViewControllerFragmentDelegate;
+import com.eightsines.holycycle.ViewControllerLifecycle;
 
 /**
  * This class should be used instead of {@link android.app.Fragment} (android.app.Fragment, non-support fragment).
@@ -167,5 +168,11 @@ public class ViewControllerPlatformFragment extends Fragment implements ViewCont
     @Override
     public <T extends View> T findViewById(int id) {
         return controllerDelegate.findViewById(id);
+    }
+
+    @NonNull
+    @Override
+    public ViewControllerLifecycle getControllerLifecycle() {
+        return controllerDelegate.getControllerLifecycle();
     }
 }

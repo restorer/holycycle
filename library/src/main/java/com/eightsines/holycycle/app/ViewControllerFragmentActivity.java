@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import com.eightsines.holycycle.ViewController;
 import com.eightsines.holycycle.ViewControllerActivityDelegate;
+import com.eightsines.holycycle.ViewControllerLifecycle;
 
 /**
  * This class should be used instead of {@link FragmentActivity}.
@@ -36,6 +37,12 @@ public abstract class ViewControllerFragmentActivity extends FragmentActivity im
 
     @Override
     protected void onResume() {
+        // TODO: should we use onResumeFragments() instead?
+        // https://developer.android.com/reference/android/support/v4/app/FragmentActivity#onResume()
+        //
+        // According to quick look into FragmentActivity and support FragmentManager,
+        // onResume() should be enough, but we should know for sure.
+
         super.onResume();
         controllerDelegate.onResume();
     }
@@ -129,5 +136,11 @@ public abstract class ViewControllerFragmentActivity extends FragmentActivity im
     @Override
     public View getView() {
         return controllerDelegate.getView();
+    }
+
+    @NonNull
+    @Override
+    public ViewControllerLifecycle getControllerLifecycle() {
+        return controllerDelegate.getControllerLifecycle();
     }
 }

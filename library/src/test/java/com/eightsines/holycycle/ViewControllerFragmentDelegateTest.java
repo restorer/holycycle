@@ -305,6 +305,8 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnDestroyViewHasContentLayout() {
         performCreateView();
+
+        assert controllerDelegate.getView() != null;
         final ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
 
         TestUtils.runWithMockedBuildVersion(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
@@ -323,6 +325,8 @@ public class ViewControllerFragmentDelegateTest {
     @Test
     public void testOnDestroyViewHasContentLayoutOldSdk() {
         performCreateView();
+
+        assert controllerDelegate.getView() != null;
         ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
 
         controllerDelegate.onDestroyView();
@@ -338,6 +342,7 @@ public class ViewControllerFragmentDelegateTest {
         performAndVerifyStartAfterViewCreated();
         performAndVerifyStop();
 
+        assert controllerDelegate.getView() != null;
         final ViewTreeObserver viewTreeObserver = controllerDelegate.getView().getViewTreeObserver();
 
         TestUtils.runWithMockedBuildVersion(Build.VERSION_CODES.JELLY_BEAN_MR2, new Runnable() {
@@ -559,6 +564,8 @@ public class ViewControllerFragmentDelegateTest {
         performCreateView();
 
         View view = Mockito.mock(View.class);
+
+        assert controllerDelegate.getView() != null;
         Mockito.when(controllerDelegate.getView().findViewById(1)).thenReturn(view);
 
         Assert.assertSame(view, controllerDelegate.findViewById(1));
@@ -691,6 +698,8 @@ public class ViewControllerFragmentDelegateTest {
                 ViewGroup container = Mockito.mock(ViewGroup.class);
                 LayoutInflater inflater = Mockito.mock(LayoutInflater.class);
                 View contentView = hasPreviousContentView ? controllerDelegate.getView() : Mockito.mock(View.class);
+
+                assert contentView != null;
 
                 ViewTreeObserver viewTreeObserver = hasPreviousContentView
                         ? contentView.getViewTreeObserver()

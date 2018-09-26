@@ -22,19 +22,20 @@ import com.eightsines.holycycle.app.ViewControllerPlatformFragment;
  * See {@link ViewControllerFragment} for example of usage - it is pretty simple.</p>
  */
 @SuppressLint("NewApi")
-public class ViewControllerFragmentDelegate {
-    private static final int STATE_DESTROYED = -3;
-    private static final int STATE_INSTANCE_STATE_SAVED = -2;
-    private static final int STATE_STOPPED = -1;
-    private static final int STATE_INITIALIZED = 0;
-    private static final int STATE_ATTACHED = 1;
-    private static final int STATE_CREATED = 2;
-    private static final int STATE_VIEW_CREATED = 3;
-    private static final int STATE_STARTED = 4;
-    private static final int STATE_RESUMED = 5;
+public class ViewControllerFragmentDelegate implements ViewControllerLifecycleOwner, ViewControllerLifecycleTracker {
+    private static final int HOST_DESTROYED = -3;
+    private static final int HOST_INSTANCE_STATE_SAVED = -2;
+    private static final int HOST_STOPPED = -1;
+    private static final int HOST_INITIALIZED = 0;
+    private static final int HOST_ATTACHED = 1;
+    private static final int HOST_CREATED = 2;
+    private static final int HOST_VIEW_CREATED = 3;
+    private static final int HOST_STARTED = 4;
+    private static final int HOST_RESUMED = 5;
 
     private ViewController controller;
-    private int state = STATE_INITIALIZED;
+    private ViewControllerLifecycleRegistry registry;
+    private int hostState = HOST_INITIALIZED;
     private View contentView;
     private boolean hasWindowFocus;
 
@@ -44,13 +45,15 @@ public class ViewControllerFragmentDelegate {
             if (hasFocus && !hasWindowFocus) {
                 hasWindowFocus = true;
 
-                if (state == STATE_RESUMED) {
+                if (hostState == HOST_RESUMED) {
                     controller.onControllerFocus();
+                    registry.onControllerFocus();
                 }
             } else if (!hasFocus && hasWindowFocus) {
                 hasWindowFocus = false;
 
-                if (state == STATE_RESUMED) {
+                if (hostState == HOST_RESUMED) {
+                    registry.onControllerBlur();
                     controller.onControllerBlur();
                 }
             }
@@ -68,6 +71,8 @@ public class ViewControllerFragmentDelegate {
     @SuppressWarnings("WeakerAccess")
     public ViewControllerFragmentDelegate(@NonNull ViewController controller) {
         this.controller = controller;
+
+        registry = new ViewControllerLifecycleRegistry(this);
     }
 
     /**
@@ -75,18 +80,19 @@ public class ViewControllerFragmentDelegate {
      * after {@code super.onAttach(context)}.
      */
     public void onAttach() {
-        // STATE_ATTACHED - This method may be called twice for platform fragments on newer APIs.
-        if (state == STATE_DESTROYED || state == STATE_ATTACHED) {
+        // HOST_ATTACHED - This method may be called twice for platform fragments on newer APIs.
+        if (hostState == HOST_DESTROYED || hostState == HOST_ATTACHED) {
             return;
         }
 
-        if (state != STATE_INITIALIZED && state != STATE_INSTANCE_STATE_SAVED) {
-            throw new IllegalStateException("This should not happen, but onAttach() was called with an invalid state ("
-                    + state
-                    + ").");
+        if (hostState != HOST_INITIALIZED && hostState != HOST_INSTANCE_STATE_SAVED) {
+            throw new IllegalStateException(
+                    "This should not happen, but onAttach() was called with an invalid hostState ("
+                            + hostState
+                            + ").");
         }
 
-        state = STATE_ATTACHED;
+        hostState = HOST_ATTACHED;
     }
 
     /**
@@ -97,18 +103,18 @@ public class ViewControllerFragmentDelegate {
      * @param arguments Pass {@code getArguments()} here.
      */
     public void onCreate(@Nullable Bundle savedInstanceState, @Nullable Bundle arguments) {
-        if (state == STATE_DESTROYED) {
+        if (hostState == HOST_DESTROYED) {
             return;
         }
 
-        if (state != STATE_ATTACHED) {
+        if (hostState != HOST_ATTACHED) {
             throw new IllegalStateException(
-                    "onCreate() was called with an invalid state ("
-                            + state
+                    "onCreate() was called with an invalid hostState ("
+                            + hostState
                             + "), perhaps you forgot to call onAttach()?");
         }
 
-        state = STATE_CREATED;
+        hostState = HOST_CREATED;
         controller.onControllerCreate(arguments);
 
         if (savedInstanceState != null) {
@@ -150,26 +156,26 @@ public class ViewControllerFragmentDelegate {
             @Nullable ViewGroup container,
             boolean isPlatformFragment) {
 
-        if (state == STATE_DESTROYED) {
+        if (hostState == HOST_DESTROYED) {
             return null;
         }
 
-        // STATE_ATTACHED - If fragment is retained, this method can be called directly after onAttach();
-        // STATE_CREATED - Normal flow;
-        // STATE_STOPPED - Just for case, actually this should never happen;
-        // STATE_INSTANCE_STATE_SAVED - Also just for case.
-        if (state != STATE_ATTACHED
-                && state != STATE_CREATED
-                && state != STATE_STOPPED
-                && state != STATE_INSTANCE_STATE_SAVED) {
+        // HOST_ATTACHED - If fragment is retained, this method can be called directly after onAttach();
+        // HOST_CREATED - Normal flow;
+        // HOST_STOPPED - Just for case, actually this should never happen;
+        // HOST_INSTANCE_STATE_SAVED - Also just for case.
+        if (hostState != HOST_ATTACHED
+                && hostState != HOST_CREATED
+                && hostState != HOST_STOPPED
+                && hostState != HOST_INSTANCE_STATE_SAVED) {
 
             throw new IllegalStateException(
-                    "onCreateView() was called with an invalid state ("
-                            + state
+                    "onCreateView() was called with an invalid hostState ("
+                            + hostState
                             + "), perhaps you forgot to call onCreate()?");
         }
 
-        state = STATE_VIEW_CREATED;
+        hostState = HOST_VIEW_CREATED;
 
         if (contentView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             contentView.getViewTreeObserver().removeOnWindowFocusChangeListener(windowFocusChangeListener);
@@ -214,14 +220,14 @@ public class ViewControllerFragmentDelegate {
      */
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR2)
     public void onViewCreated() {
-        if (state == STATE_DESTROYED) {
+        if (hostState == HOST_DESTROYED) {
             return;
         }
 
-        if (state != STATE_VIEW_CREATED) {
+        if (hostState != HOST_VIEW_CREATED) {
             throw new IllegalStateException(
-                    "onViewCreated() was called with an invalid state ("
-                            + state
+                    "onViewCreated() was called with an invalid hostState ("
+                            + hostState
                             + "), perhaps you forgot to call onCreateView()?");
         }
 
@@ -235,22 +241,24 @@ public class ViewControllerFragmentDelegate {
      * after {@code super.onStart()}.
      */
     public void onStart() {
-        if (state == STATE_DESTROYED) {
+        if (hostState == HOST_DESTROYED) {
             return;
         }
 
-        // STATE_VIEW_CREATED - Normal flow;
-        // STATE_STOPPED - After onStop();
-        // STATE_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
-        if (state != STATE_VIEW_CREATED && state != STATE_STOPPED && state != STATE_INSTANCE_STATE_SAVED) {
+        // HOST_VIEW_CREATED - Normal flow;
+        // HOST_STOPPED - After onStop();
+        // HOST_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
+        if (hostState != HOST_VIEW_CREATED && hostState != HOST_STOPPED && hostState != HOST_INSTANCE_STATE_SAVED) {
             throw new IllegalStateException(
-                    "onStart() was called with an invalid state ("
-                            + state
+                    "onStart() was called with an invalid hostState ("
+                            + hostState
                             + "), perhaps you forgot to call onCreateView()?");
         }
 
-        state = STATE_STARTED;
+        hostState = HOST_STARTED;
+
         controller.onControllerStart();
+        registry.onControllerStart();
     }
 
     /**
@@ -258,25 +266,29 @@ public class ViewControllerFragmentDelegate {
      * after {@code super.onResume()}.
      */
     public void onResume() {
-        if (state == STATE_DESTROYED) {
+        if (hostState == HOST_DESTROYED) {
             return;
         }
 
-        // STATE_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
-        if (state == STATE_INSTANCE_STATE_SAVED) {
+        // HOST_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
+        if (hostState == HOST_INSTANCE_STATE_SAVED) {
             controller.onControllerStart();
-        } else if (state != STATE_STARTED) {
+            registry.onControllerStart();
+        } else if (hostState != HOST_STARTED) {
             throw new IllegalStateException(
-                    "onResume() was called with an invalid state ("
-                            + state
+                    "onResume() was called with an invalid hostState ("
+                            + hostState
                             + "), perhaps you forgot to call onStart()?");
         }
 
-        state = STATE_RESUMED;
+        hostState = HOST_RESUMED;
+
         controller.onControllerResume();
+        registry.onControllerResume();
 
         if (hasWindowFocus) {
             controller.onControllerFocus();
+            registry.onControllerFocus();
         }
     }
 
@@ -285,24 +297,28 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onPause()}.
      */
     public void onPause() {
-        if (state == STATE_DESTROYED || state == STATE_INSTANCE_STATE_SAVED) {
+        if (hostState == HOST_DESTROYED || hostState == HOST_INSTANCE_STATE_SAVED) {
             return;
         }
 
-        if (state != STATE_RESUMED) {
+        if (hostState != HOST_RESUMED) {
             throw new IllegalStateException(
-                    "onPause() was called with an invalid state ("
-                            + state
+                    "onPause() was called with an invalid hostState ("
+                            + hostState
                             + "), perhaps you forgot to call onResume()?");
         }
 
-        state = STATE_STARTED;
+        hostState = HOST_STARTED;
 
         if (hasWindowFocus) {
+            registry.onControllerBlur();
             controller.onControllerBlur();
         }
 
+        registry.onControllerPause();
         controller.onControllerPause();
+
+        registry.onControllerPersistUserData();
         controller.onControllerPersistUserData();
     }
 
@@ -311,16 +327,20 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onStop()}.
      */
     public void onStop() {
-        if (state == STATE_DESTROYED || state == STATE_INSTANCE_STATE_SAVED) {
+        if (hostState == HOST_DESTROYED || hostState == HOST_INSTANCE_STATE_SAVED) {
             return;
         }
 
-        if (state != STATE_STARTED) {
+        if (hostState != HOST_STARTED) {
             throw new IllegalStateException(
-                    "onStop() was called with an invalid state (" + state + "), perhaps you forgot to call onPause()?");
+                    "onStop() was called with an invalid hostState ("
+                            + hostState
+                            + "), perhaps you forgot to call onPause()?");
         }
 
-        state = STATE_STOPPED;
+        hostState = HOST_STOPPED;
+
+        registry.onControllerStop();
         controller.onControllerStop();
     }
 
@@ -329,20 +349,20 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onDestroyView()}.
      */
     public void onDestroyView() {
-        if (state == STATE_DESTROYED) {
+        if (hostState == HOST_DESTROYED) {
             return;
         }
 
-        // According to https://github.com/xxv/android-lifecycle, state can't be STATE_VIEW_CREATED,
+        // According to https://github.com/xxv/android-lifecycle, hostState can't be HOST_VIEW_CREATED,
         // but we still handle it for the great justice.
-        if (state != STATE_STOPPED && state != STATE_VIEW_CREATED && state != STATE_INSTANCE_STATE_SAVED) {
+        if (hostState != HOST_STOPPED && hostState != HOST_VIEW_CREATED && hostState != HOST_INSTANCE_STATE_SAVED) {
             throw new IllegalStateException(
-                    "onDestroyView() was called with an invalid state ("
-                            + state
+                    "onDestroyView() was called with an invalid hostState ("
+                            + hostState
                             + "), perhaps you forgot to call onStop()?");
         }
 
-        state = STATE_CREATED;
+        hostState = HOST_CREATED;
 
         if (contentView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             contentView.getViewTreeObserver().removeOnWindowFocusChangeListener(windowFocusChangeListener);
@@ -356,19 +376,19 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onDestroy()}.
      */
     public void onDestroy() {
-        if (state == STATE_DESTROYED) {
+        if (hostState == HOST_DESTROYED) {
             return;
         }
 
-        // STATE_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
-        if (state != STATE_CREATED && state != STATE_INSTANCE_STATE_SAVED) {
+        // HOST_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
+        if (hostState != HOST_CREATED && hostState != HOST_INSTANCE_STATE_SAVED) {
             throw new IllegalStateException(
-                    "onDestroy() was called with an invalid state ("
-                            + state
+                    "onDestroy() was called with an invalid hostState ("
+                            + hostState
                             + "), perhaps you forgot to call onDestroyView()? Otherwise, there is very little chance that this may be due to problems with onDestroyView() in some versions of Android.");
         }
 
-        state = STATE_DESTROYED;
+        hostState = HOST_DESTROYED;
     }
 
     /**
@@ -376,17 +396,17 @@ public class ViewControllerFragmentDelegate {
      * before {@code super.onDetach()}.
      */
     public void onDetach() {
-        // STATE_CREATED - If fragment is retained, this method can be called directly after onDestroyView();
-        // STATE_DESTROYED - Normal flow;
-        // STATE_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
-        if (state != STATE_CREATED && state != STATE_DESTROYED && state != STATE_INSTANCE_STATE_SAVED) {
+        // HOST_CREATED - If fragment is retained, this method can be called directly after onDestroyView();
+        // HOST_DESTROYED - Normal flow;
+        // HOST_INSTANCE_STATE_SAVED - Should not happen, but handled for the great justice.
+        if (hostState != HOST_CREATED && hostState != HOST_DESTROYED && hostState != HOST_INSTANCE_STATE_SAVED) {
             throw new IllegalStateException(
-                    "onDetach() was called with an invalid state ("
-                            + state
+                    "onDetach() was called with an invalid hostState ("
+                            + hostState
                             + "), perhaps you forgot to call onDestroy()? Otherwise, there is very little chance that this may be due to problems with onDestroyView() in some versions of Android.");
         }
 
-        state = STATE_INITIALIZED;
+        hostState = HOST_INITIALIZED;
     }
 
     /**
@@ -394,20 +414,20 @@ public class ViewControllerFragmentDelegate {
      * after {@code super.onSaveInstanceState(Bundle outState)}.
      */
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        // Allow to continue with STATE_INSTANCE_STATE_SAVED.
-        if (state == STATE_DESTROYED) {
+        // Allow to continue with HOST_INSTANCE_STATE_SAVED.
+        if (hostState == HOST_DESTROYED) {
             return;
         }
 
-        if (state == STATE_RESUMED) {
+        if (hostState == HOST_RESUMED) {
             onPause();
         }
 
-        if (state == STATE_STARTED) {
+        if (hostState == HOST_STARTED) {
             onStop();
         }
 
-        state = STATE_INSTANCE_STATE_SAVED;
+        hostState = HOST_INSTANCE_STATE_SAVED;
         controller.onControllerSaveInstanceState(outState);
     }
 
@@ -437,5 +457,39 @@ public class ViewControllerFragmentDelegate {
     @Nullable
     public <T extends View> T findViewById(int id) {
         return (contentView == null ? null : (T)contentView.findViewById(id));
+    }
+
+    /**
+     * Pass return value from this method to {@link ViewController#getControllerLifecycle()}.
+     *
+     * @return The controller lifecycle.
+     */
+    @NonNull
+    @Override
+    public ViewControllerLifecycle getControllerLifecycle() {
+        return registry;
+    }
+
+    /**
+     * Internal method for the {@link ViewControllerLifecycleRegistry}.
+     *
+     * @param state State to compare with.
+     * @return true if current lifecycle state of the view controller is greater or equal to the given {@code state}.
+     */
+    @Override
+    public boolean isControllerStateAtLeast(int state) {
+        switch (state) {
+            case ViewControllerLifecycle.STATE_FOCUSED:
+                return (hostState == HOST_RESUMED && hasWindowFocus);
+
+            case ViewControllerLifecycle.STATE_RESUMED:
+                return (hostState == HOST_RESUMED);
+
+            case ViewControllerLifecycle.STATE_STARTED:
+                return (hostState == HOST_STARTED || hostState == HOST_RESUMED);
+
+            default:
+                return false;
+        }
     }
 }

@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import com.eightsines.holycycle.ViewController;
 import com.eightsines.holycycle.ViewControllerActivityDelegate;
+import com.eightsines.holycycle.ViewControllerLifecycle;
 
 /**
  * This class should be used instead of {@link android.app.Activity} (android.app.Activity).
@@ -36,6 +37,12 @@ public abstract class ViewControllerActivity extends Activity implements ViewCon
 
     @Override
     protected void onResume() {
+        // TODO: should we use onPostResume() instead (like onResumeFragments() in FragmentActivity)?
+        // https://developer.android.com/reference/android/support/v4/app/FragmentActivity#onResume()
+        //
+        // According to quick look into Activity and platform FragmentManager,
+        // onResume() should be enough, but we should know for sure.
+
         super.onResume();
         controllerDelegate.onResume();
     }
@@ -129,5 +136,11 @@ public abstract class ViewControllerActivity extends Activity implements ViewCon
     @Override
     public View getView() {
         return controllerDelegate.getView();
+    }
+
+    @NonNull
+    @Override
+    public ViewControllerLifecycle getControllerLifecycle() {
+        return controllerDelegate.getControllerLifecycle();
     }
 }
