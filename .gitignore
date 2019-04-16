@@ -3,6 +3,7 @@
 .gradle
 *.iml
 /.idea
+/_info
 /build
 /captures
 /local.properties

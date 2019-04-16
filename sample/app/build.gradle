@@ -3,12 +3,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
 
     defaultConfig {
         applicationId "com.eightsines.holycyclesample"
         minSdkVersion 14
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName '0.1.0'
     }
@@ -27,5 +27,5 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${ver_kotlin}"
     implementation "com.android.support:appcompat-v7:${ver_support}"
     implementation "com.android.support.constraint:constraint-layout:${ver_constraint}"
-    implementation "com.github.restorer:holycycle:${ver_holycycle}"
+    // implementation "com.github.restorer:holycycle:${ver_holycycle}"
 }

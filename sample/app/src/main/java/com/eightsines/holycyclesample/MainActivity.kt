@@ -2,6 +2,67 @@ package com.eightsines.holycyclesample
 
 import android.arch.lifecycle.Lifecycle
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
+import android.widget.ScrollView
+import kotlinx.android.synthetic.main.activity_main.*
+
+class MainActivity : AppCompatActivity() {
+    private val logBuffer = StringBuffer()
+
+    override fun onCreate(savedInstanceState : Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        appendToLog("onCreate")
+        setContentView(R.layout.activity_main)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState : Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        appendToLog("onRestoreInstanceState")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        appendToLog("onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        appendToLog("onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        appendToLog("onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        appendToLog("onStop")
+    }
+
+    override fun onSaveInstanceState(outState : Bundle?) {
+        super.onSaveInstanceState(outState)
+        appendToLog("onSaveInstanceState")
+    }
+
+    private fun appendToLog(message : String) {
+        if (!logBuffer.isEmpty()) {
+            logBuffer.append("\n")
+        }
+
+        logBuffer.append(message)
+
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            logView.text = logBuffer.toString()
+            scrollWrapView.post { scrollWrapView.fullScroll(ScrollView.FOCUS_DOWN) }
+        }
+    }
+}
+
+/*
+import android.arch.lifecycle.Lifecycle
+import android.os.Bundle
 import android.widget.ScrollView
 import com.eightsines.holycycle.app.ViewControllerAppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
@@ -82,3 +143,4 @@ class MainActivity : ViewControllerAppCompatActivity() {
         }
     }
 }
+*/
