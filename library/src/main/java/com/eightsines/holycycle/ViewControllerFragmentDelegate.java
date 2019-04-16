@@ -13,30 +13,31 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import com.eightsines.holycycle.app.ViewControllerFragment;
+import com.eightsines.holycycle.app.ViewControllerDialogFragment;
 import com.eightsines.holycycle.app.ViewControllerPlatformFragment;
 
 /**
  * Helper class which transform Android-lifecycle to ViewController-lifecycle.
- * <p>If you can't use {@link ViewControllerFragment} or {@link ViewControllerPlatformFragment},
+ * <p>If you can't use {@link ViewControllerFragment}, {@link ViewControllerDialogFragment} or {@link ViewControllerPlatformFragment},
  * (eg. you can't change base fragment for some reason), use this class.
  * See {@link ViewControllerFragment} for example of usage - it is pretty simple.</p>
  */
 @SuppressLint("NewApi")
 public class ViewControllerFragmentDelegate {
-    private static final int STATE_DESTROYED = -3;
-    private static final int STATE_INSTANCE_STATE_SAVED = -2;
-    private static final int STATE_STOPPED = -1;
-    private static final int STATE_INITIALIZED = 0;
-    private static final int STATE_ATTACHED = 1;
-    private static final int STATE_CREATED = 2;
-    private static final int STATE_VIEW_CREATED = 3;
-    private static final int STATE_STARTED = 4;
-    private static final int STATE_RESUMED = 5;
+    static final int STATE_DESTROYED = -3;
+    static final int STATE_INSTANCE_STATE_SAVED = -2;
+    static final int STATE_STOPPED = -1;
+    static final int STATE_INITIALIZED = 0;
+    static final int STATE_ATTACHED = 1;
+    static final int STATE_CREATED = 2;
+    static final int STATE_VIEW_CREATED = 3;
+    static final int STATE_STARTED = 4;
+    static final int STATE_RESUMED = 5;
 
     private ViewController controller;
-    private int state = STATE_INITIALIZED;
     private View contentView;
     private boolean hasWindowFocus;
+    int state = STATE_INITIALIZED;
 
     private ViewTreeObserver.OnWindowFocusChangeListener windowFocusChangeListener = new ViewTreeObserver.OnWindowFocusChangeListener() {
         @Override
