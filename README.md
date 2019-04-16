@@ -1,6 +1,6 @@
 # HolyCycle
 
-[![Build Status](https://travis-ci.org/restorer/holycycle.svg?branch=master)](https://travis-ci.org/restorer/holycycle) [![Javadoc](https://img.shields.io/badge/javadoc-0.2.0-blue.svg)](https://restorer.github.io/holycycle/javadoc) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.txt)
+[![Build Status](https://travis-ci.org/restorer/holycycle.svg?branch=master)](https://travis-ci.org/restorer/holycycle) [![Javadoc](https://img.shields.io/badge/javadoc-0.1.0-blue.svg)](https://restorer.github.io/holycycle/javadoc) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.txt)
 
 ![](docs/logo.png)
 
@@ -21,7 +21,7 @@ allprojects {
 
 ```
 dependencies {
-    implementation 'com.github.restorer:holycycle:0.2.0'
+    implementation 'com.github.restorer:holycycle:0.2.1@aar'
 }
 ```
 
