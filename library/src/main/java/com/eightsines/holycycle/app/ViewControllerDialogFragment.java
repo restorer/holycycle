@@ -1,5 +1,6 @@
 package com.eightsines.holycycle.app;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -9,18 +10,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.eightsines.holycycle.ViewController;
-import com.eightsines.holycycle.ViewControllerFragmentDelegate;
+import com.eightsines.holycycle.ViewControllerDialog;
+import com.eightsines.holycycle.ViewControllerDialogFragmentDelegate;
 
 /**
  * This class should be used instead of {@link android.support.v4.app.DialogFragment} (android.support.v4.app.DialogFragment).
  */
-public abstract class ViewControllerDialogFragment extends DialogFragment implements ViewController {
-    private ViewControllerFragmentDelegate controllerDelegate;
+public abstract class ViewControllerDialogFragment extends DialogFragment implements ViewControllerDialog {
+    private ViewControllerDialogFragmentDelegate controllerDelegate;
 
     public ViewControllerDialogFragment() {
         super();
-        controllerDelegate = new ViewControllerFragmentDelegate(this);
+        controllerDelegate = new ViewControllerDialogFragmentDelegate(this);
     }
 
     @Override
@@ -42,6 +43,14 @@ public abstract class ViewControllerDialogFragment extends DialogFragment implem
                              @Nullable Bundle savedInstanceState) {
 
         return controllerDelegate.onCreateView(inflater, container);
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        Dialog dialog = controllerDelegate.onCreateDialog();
+
+        return (dialog == null ? super.onCreateDialog(savedInstanceState) : dialog);
     }
 
     @Override
@@ -100,6 +109,11 @@ public abstract class ViewControllerDialogFragment extends DialogFragment implem
 
     @Override
     public void onControllerCreate(@Nullable Bundle extras) {
+    }
+
+    @Override
+    public Dialog onControllerCreateDialog() {
+        return null;
     }
 
     @Override
